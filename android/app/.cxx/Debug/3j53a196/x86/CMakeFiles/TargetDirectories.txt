@@ -1,0 +1,2 @@
+C:/Users/starkels/StudioProjects/restotrack_app/android/app/.cxx/Debug/3j53a196/x86/CMakeFiles/edit_cache.dir
+C:/Users/starkels/StudioProjects/restotrack_app/android/app/.cxx/Debug/3j53a196/x86/CMakeFiles/rebuild_cache.dir
