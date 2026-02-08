@@ -1,5 +1,5 @@
 class ApiConstants {
-  static const String baseUrl = 'https://12e4fc79e33b.ngrok-free.app/api/v1';
+  static const String baseUrl = 'https://3fdd-136-158-79-20.ngrok-free.app/api/v1';
 
   static const String login = '/login';
   static const String logout = '/logout';
@@ -13,6 +13,8 @@ class ApiConstants {
   static const String categories = '/categories';
   
   static const String kitchenOrders = '/kitchen/orders';
+
+  static const String cashierOrders = '/cashier/orders';
 
   static const String payments = '/payments';
   static const String transactions = '/transactions';

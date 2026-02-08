@@ -1,9 +1,9 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:restotrack_app/features/orders/data/models/order_model.dart';
 
-part 'order_state.freezed.dart';
+part 'kds_state.freezed.dart';
 
-enum OrderStateStatus {
+enum KdsStateStatus {
   initial,
   loading,
   success,
@@ -11,24 +11,20 @@ enum OrderStateStatus {
 }
 
 @freezed
-class OrderState with _$OrderState {
-  const OrderState._();
-
-  const factory OrderState({
+class KdsState with _$KdsState {
+  const factory KdsState({
     @Default([]) List<OrderModel> orders,
-    @Default(OrderStateStatus.initial) OrderStateStatus status,
-    OrderModel? selectedOrder,
-    OrderStatus? filterStatus,
+    @Default(KdsStateStatus.initial) KdsStateStatus status,
     String? errorMessage,
     @Default(false) bool isUpdating,
-  }) = _OrderState;
+    String? updatingOrderId,
+  }) = _KdsState;
 
-  bool get isLoading => status == OrderStateStatus.loading;
-  bool get hasError => status == OrderStateStatus.error;
-  bool get isEmpty => orders.isEmpty && status == OrderStateStatus.success;
+  const KdsState._();
 
-  List<OrderModel> get activeOrders =>
-      orders.where((o) => o.status.isActive).toList();
+  bool get isLoading => status == KdsStateStatus.loading;
+  bool get hasError => status == KdsStateStatus.error;
+  bool get isEmpty => orders.isEmpty && status == KdsStateStatus.success;
 
   List<OrderModel> get pendingOrders =>
       orders.where((o) => o.status == OrderStatus.pending).toList();
@@ -41,7 +37,4 @@ class OrderState with _$OrderState {
 
   List<OrderModel> get readyOrders =>
       orders.where((o) => o.status == OrderStatus.ready).toList();
-
-  List<OrderModel> get completedOrders =>
-      orders.where((o) => o.status == OrderStatus.completed).toList();
 }

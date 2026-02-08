@@ -1,39 +1,63 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:restotrack_app/core/theme/app_theme.dart';
 import 'package:restotrack_app/features/auth/data/models/user_model.dart';
-import 'package:restotrack_app/features/cashier/pos_order_list.dart';
+import 'package:restotrack_app/features/auth/data/presentation/bloc/auth_bloc.dart';
+import 'package:restotrack_app/features/auth/data/presentation/bloc/auth_event.dart';
+import 'package:restotrack_app/features/cashier/presentation/bloc/cashier_bloc.dart';
+import 'package:restotrack_app/features/cashier/presentation/bloc/cashier_event.dart';
+import 'package:restotrack_app/features/cashier/presentation/bloc/cashier_state.dart';
+import 'package:restotrack_app/features/cashier/presentation/pages/pos_order_list_page.dart';
+import 'package:restotrack_app/features/orders/data/models/order_model.dart';
 
-class CashierHomePage extends StatelessWidget {
+class CashierHomePage extends StatefulWidget {
   const CashierHomePage({super.key, required this.user});
 
   final UserModel user;
+
+  @override
+  State<CashierHomePage> createState() => _CashierHomePageState();
+}
+
+class _CashierHomePageState extends State<CashierHomePage> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<CashierBloc>().add(const CashierLoadOrders());
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(context),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildStatsRow(),
-                    const SizedBox(height: 16),
-                    _buildTotalSalesCard(),
-                    const SizedBox(height: 16),
-                    _buildGoToPOSButton(context),
-                    const SizedBox(height: 24),
-                    _buildRecentOrdersSection(),
-                  ],
+        child: RefreshIndicator(
+          onRefresh: () async {
+            context.read<CashierBloc>().add(const CashierRefreshOrders());
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(context),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildStatsRow(),
+                      const SizedBox(height: 16),
+                      _buildTotalSalesCard(),
+                      const SizedBox(height: 16),
+                      _buildGoToPOSButton(context),
+                      const SizedBox(height: 24),
+                      _buildRecentOrdersSection(),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -66,9 +90,9 @@ class CashierHomePage extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Welcome back, ${user.firstName}',
+                'Welcome back, ${widget.user.firstName}',
                 style: TextStyle(
-                  color: AppColors.white.withOpacity(0.8),
+                  color: AppColors.white.withValues(alpha: 0.8),
                   fontSize: 14,
                 ),
               ),
@@ -76,7 +100,7 @@ class CashierHomePage extends StatelessWidget {
           ),
           IconButton(
             onPressed: () {
-              // TODO: Logout
+              context.read<AuthBloc>().add(AuthLogoutRequested());
             },
             icon: const Icon(
               Icons.logout_rounded,
@@ -89,77 +113,91 @@ class CashierHomePage extends StatelessWidget {
   }
 
   Widget _buildStatsRow() {
-    return Row(
-      children: [
-        Expanded(
-          child: _StatCard(
-            icon: Icons.access_time_rounded,
-            iconColor: AppColors.purple,
-            iconBgColor: AppColors.purple.withOpacity(0.1),
-            label: 'Pending Orders',
-            value: '8',
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _StatCard(
-            icon: Icons.check_circle_outline_rounded,
-            iconColor: AppColors.primaryGreen,
-            iconBgColor: AppColors.primaryGreen.withOpacity(0.1),
-            label: 'Completed Today',
-            value: '42',
-          ),
-        ),
-      ],
+    return BlocBuilder<CashierBloc, CashierState>(
+      builder: (context, state) {
+        final stats = state.stats;
+        return Row(
+          children: [
+            Expanded(
+              child: _StatCard(
+                icon: Icons.access_time_rounded,
+                iconColor: AppColors.purple,
+                iconBgColor: AppColors.purple.withValues(alpha: 0.1),
+                label: 'Ready to Pay',
+                value: '${stats?.pendingCount ?? state.pendingOrders.length}',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _StatCard(
+                icon: Icons.check_circle_outline_rounded,
+                iconColor: AppColors.primaryGreen,
+                iconBgColor: AppColors.primaryGreen.withValues(alpha: 0.1),
+                label: 'Completed Today',
+                value: '${stats?.completedCount ?? state.completedOrders.length}',
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
   Widget _buildTotalSalesCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: AppColors.purpleGradient,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return BlocBuilder<CashierBloc, CashierState>(
+      builder: (context, state) {
+        final totalSales = state.stats?.totalSales ??
+            state.completedOrders.fold<double>(
+              0,
+              (sum, order) => sum + order.total,
+            );
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: AppColors.purpleGradient,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Total Sales Today',
-                style: TextStyle(
-                  color: AppColors.white.withOpacity(0.8),
-                  fontSize: 14,
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Total Sales Today',
+                    style: TextStyle(
+                      color: AppColors.white.withValues(alpha: 0.8),
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    '\u20B1${_formatCurrency(totalSales)}',
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              const Text(
-                '₱12,450.00',
-                style: TextStyle(
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.account_balance_wallet_rounded,
                   color: AppColors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
+                  size: 28,
                 ),
               ),
             ],
           ),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.account_balance_wallet_rounded,
-              color: AppColors.white,
-              size: 28,
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -168,9 +206,13 @@ class CashierHomePage extends StatelessWidget {
       width: double.infinity,
       child: ElevatedButton.icon(
         onPressed: () {
+          final cashierBloc = context.read<CashierBloc>();
           Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const PosOrderListPage(),
+            MaterialPageRoute<void>(
+              builder: (_) => BlocProvider.value(
+                value: cashierBloc,
+                child: const PosOrderListPage(),
+              ),
             ),
           );
         },
@@ -197,36 +239,79 @@ class CashierHomePage extends StatelessWidget {
   }
 
   Widget _buildRecentOrdersSection() {
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return BlocBuilder<CashierBloc, CashierState>(
+      builder: (context, state) {
+        final recentOrders = state.completedOrders.take(5).toList();
+
+        return Column(
           children: [
-            const Text(
-              'Recent Orders',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.textPrimary,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Recent Completed',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    final cashierBloc = context.read<CashierBloc>();
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => BlocProvider.value(
+                          value: cashierBloc,
+                          child: const PosOrderListPage(),
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text('View All'),
+                ),
+              ],
             ),
-            TextButton(
-              onPressed: () {
-                // TODO: View all orders
-              },
-              child: const Text('View All'),
-            ),
+            const SizedBox(height: 12),
+            if (state.isLoading)
+              const Center(child: CircularProgressIndicator())
+            else if (recentOrders.isEmpty)
+              Container(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.receipt_long_outlined,
+                      size: 48,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'No completed orders yet',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              ...recentOrders.map((order) => _OrderCard(order: order)),
           ],
-        ),
-        const SizedBox(height: 12),
-        // Mock data - replace with real data later
-        ..._mockOrders.map((order) => _OrderCard(order: order)),
-      ],
+        );
+      },
     );
+  }
+
+  String _formatCurrency(double amount) {
+    if (amount >= 1000) {
+      return '${(amount / 1000).toStringAsFixed(amount % 1000 == 0 ? 0 : 2)}K';
+    }
+    return amount.toStringAsFixed(2);
   }
 }
 
-// Stats Card Widget
 class _StatCard extends StatelessWidget {
   const _StatCard({
     required this.icon,
@@ -291,11 +376,10 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-// Order Card Widget
 class _OrderCard extends StatelessWidget {
   const _OrderCard({required this.order});
 
-  final _MockOrder order;
+  final OrderModel order;
 
   @override
   Widget build(BuildContext context) {
@@ -323,7 +407,7 @@ class _OrderCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${order.tableOrType} • ${order.time}',
+                  '${order.itemCount} items \u2022 ${order.timeAgo}',
                   style: const TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 13,
@@ -336,9 +420,12 @@ class _OrderCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryGreen.withOpacity(0.1),
+                  color: AppColors.primaryGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text(
@@ -352,7 +439,7 @@ class _OrderCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                '₱${order.amount}',
+                '\u20B1${order.total.toStringAsFixed(2)}',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
@@ -366,25 +453,3 @@ class _OrderCard extends StatelessWidget {
     );
   }
 }
-
-class _MockOrder {
-  final String orderNumber;
-  final String tableOrType;
-  final String time;
-  final String amount;
-
-  const _MockOrder({
-    required this.orderNumber,
-    required this.tableOrType,
-    required this.time,
-    required this.amount,
-  });
-}
-
-const _mockOrders = [
-  _MockOrder(orderNumber: '1245', tableOrType: 'Table 5', time: '2 mins ago', amount: '850.00'),
-  _MockOrder(orderNumber: '1244', tableOrType: 'Table 2', time: '8 mins ago', amount: '1,200.00'),
-  _MockOrder(orderNumber: '1243', tableOrType: 'Takeout', time: '15 mins ago', amount: '450.00'),
-  _MockOrder(orderNumber: '1242', tableOrType: 'Table 8', time: '22 mins ago', amount: '2,100.00'),
-  _MockOrder(orderNumber: '1241', tableOrType: 'Table 3', time: '28 mins ago', amount: '675.00'),
-];

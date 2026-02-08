@@ -2,6 +2,12 @@ import 'package:get_it/get_it.dart';
 import 'package:restotrack_app/core/network/api_client.dart';
 import 'package:restotrack_app/features/auth/data/presentation/bloc/auth_bloc.dart';
 import 'package:restotrack_app/features/auth/data/repositories/auth_repository.dart';
+import 'package:restotrack_app/features/cashier/data/repositories/cashier_repository.dart';
+import 'package:restotrack_app/features/cashier/data/repositories/cashier_repository_impl.dart';
+import 'package:restotrack_app/features/cashier/presentation/bloc/cashier_bloc.dart';
+import 'package:restotrack_app/features/kds/data/repositories/kds_repository.dart';
+import 'package:restotrack_app/features/kds/data/repositories/kds_repository_impl.dart';
+import 'package:restotrack_app/features/kds/presentation/bloc/kds_bloc.dart';
 import 'package:restotrack_app/features/menu/data/repository/menu_repository.dart';
 import 'package:restotrack_app/features/menu/data/repository/menu_repository_impl.dart';
 import 'package:restotrack_app/features/menu/presentation/bloc/menu_bloc.dart';
@@ -29,6 +35,14 @@ Future<void> initDependencies() async {
         () => OrderRepositoryImpl(apiClient: sl<ApiClient>()),
   )
 
+  ..registerLazySingleton<KdsRepository>(
+        () => KdsRepositoryImpl(apiClient: sl<ApiClient>()),
+  )
+
+  ..registerLazySingleton<CashierRepository>(
+        () => CashierRepositoryImpl(apiClient: sl<ApiClient>()),
+  )
+
   ..registerLazySingleton<AuthBloc>(
         () => AuthBloc(sl<AuthRepository>()),
   )
@@ -43,5 +57,13 @@ Future<void> initDependencies() async {
 
   ..registerFactory<CartBloc>(
         () => CartBloc(orderRepository: sl<OrderRepository>()),
+  )
+
+  ..registerFactory<KdsBloc>(
+        () => KdsBloc(kdsRepository: sl<KdsRepository>()),
+  )
+
+  ..registerFactory<CashierBloc>(
+        () => CashierBloc(cashierRepository: sl<CashierRepository>()),
   );
 }

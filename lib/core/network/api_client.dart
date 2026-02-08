@@ -100,6 +100,9 @@ class ApiClient {
   Future<Response<dynamic>> getKitchenOrders() =>
       _dio.get(ApiConstants.kitchenOrders);
 
+  Future<Response<dynamic>> getCashierOrders() =>
+      _dio.get(ApiConstants.cashierOrders);
+
   Future<Response<dynamic>> updateOrderStatus(String orderId, String status) =>
       _dio.patch('${ApiConstants.kitchenOrders}/$orderId',
           data: {'status': status});

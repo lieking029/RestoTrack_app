@@ -12,19 +12,16 @@ _$MenuModelImpl _$$MenuModelImplFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
       price: (json['price'] as num).toDouble(),
       description: json['description'] as String?,
-      imageUrl: json['imageUrl'] as String?,
-      categoryId: json['categoryId'] as String?,
+      dishPicture: json['dish_picture'] as String?,
+      category: (json['category'] as num?)?.toInt() ?? 0,
       status: $enumDecodeNullable(_$MenuStatusEnumMap, json['status']) ??
           MenuStatus.available,
-      createdAt: json['createdAt'] == null
+      createdAt: json['created_at'] == null
           ? null
-          : DateTime.parse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'] == null
+          : DateTime.parse(json['created_at'] as String),
+      updatedAt: json['updated_at'] == null
           ? null
-          : DateTime.parse(json['updatedAt'] as String),
-      category: json['category'] == null
-          ? null
-          : CategoryModel.fromJson(json['category'] as Map<String, dynamic>),
+          : DateTime.parse(json['updated_at'] as String),
     );
 
 Map<String, dynamic> _$$MenuModelImplToJson(_$MenuModelImpl instance) =>
@@ -33,12 +30,11 @@ Map<String, dynamic> _$$MenuModelImplToJson(_$MenuModelImpl instance) =>
       'name': instance.name,
       'price': instance.price,
       'description': instance.description,
-      'imageUrl': instance.imageUrl,
-      'categoryId': instance.categoryId,
-      'status': _$MenuStatusEnumMap[instance.status]!,
-      'createdAt': instance.createdAt?.toIso8601String(),
-      'updatedAt': instance.updatedAt?.toIso8601String(),
+      'dish_picture': instance.dishPicture,
       'category': instance.category,
+      'status': _$MenuStatusEnumMap[instance.status]!,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt?.toIso8601String(),
     };
 
 const _$MenuStatusEnumMap = {
@@ -48,16 +44,12 @@ const _$MenuStatusEnumMap = {
 
 _$CategoryModelImpl _$$CategoryModelImplFromJson(Map<String, dynamic> json) =>
     _$CategoryModelImpl(
-      id: json['id'] as String,
+      id: (json['id'] as num).toInt(),
       name: json['name'] as String,
-      description: json['description'] as String?,
-      sortOrder: (json['sortOrder'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$$CategoryModelImplToJson(_$CategoryModelImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
-      'description': instance.description,
-      'sortOrder': instance.sortOrder,
     };

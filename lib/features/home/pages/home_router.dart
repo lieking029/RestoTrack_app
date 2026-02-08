@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:restotrack_app/core/di/injection.dart';
 import 'package:restotrack_app/features/auth/data/models/user_model.dart';
+import 'package:restotrack_app/features/cashier/presentation/bloc/cashier_bloc.dart';
 import 'package:restotrack_app/features/home/pages/cashier_home_page.dart';
 import 'package:restotrack_app/features/home/pages/kitchen_home_page.dart';
 import 'package:restotrack_app/features/home/pages/server_home_page.dart';
@@ -28,10 +29,8 @@ class HomeRouter extends StatelessWidget {
     }
 
     if (user.isCashier) {
-      return MultiBlocProvider(
-        providers: [
-          BlocProvider(create: (_) => sl<OrderBloc>()),
-        ],
+      return BlocProvider(
+        create: (_) => sl<CashierBloc>(),
         child: CashierHomePage(user: user),
       );
     }
@@ -60,8 +59,12 @@ class HomeRouter extends StatelessWidget {
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 8),
-              const Text('Please contact your manager to assign you a role.'),
-              Text('Roles: ${user.roleNames.isEmpty ? "None" : user.roleNames.join(", ")}'),
+              const Text(
+                'Please contact your manager to assign you a role.',
+              ),
+              Text(
+                'Roles: ${user.roleNames.isEmpty ? "None" : user.roleNames.join(", ")}',
+              ),
             ],
           ),
         ),

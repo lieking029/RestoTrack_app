@@ -17,8 +17,8 @@ class MenuRepositoryImpl implements MenuRepository {
   }
 
   @override
-  Future<List<MenuModel>> getMenuItemsByCategory(String categoryId) async {
-    final response = await _apiClient.getMenus(categoryId: categoryId);
+  Future<List<MenuModel>> getMenuItemsByCategory(int categoryId) async {
+    final response = await _apiClient.getMenus(categoryId: categoryId.toString());
     final data = response.data['data'] as List<dynamic>;
     return data
         .map((json) => MenuModel.fromJson(json as Map<String, dynamic>))

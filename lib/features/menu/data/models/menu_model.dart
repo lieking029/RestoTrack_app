@@ -3,7 +3,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 part 'menu_model.freezed.dart';
 part 'menu_model.g.dart';
 
-/// Menu item status
 enum MenuStatus {
   @JsonValue(0)
   available,
@@ -31,28 +30,32 @@ class MenuModel with _$MenuModel {
     required String name,
     required double price,
     String? description,
-    String? imageUrl,
-    String? categoryId,
+    @JsonKey(name: 'dish_picture') String? dishPicture,
+    @Default(0) int category,
     @Default(MenuStatus.available) MenuStatus status,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    // Relationship
-    CategoryModel? category,
+    @JsonKey(name: 'created_at') DateTime? createdAt,
+    @JsonKey(name: 'updated_at') DateTime? updatedAt,
   }) = _MenuModel;
 
   factory MenuModel.fromJson(Map<String, dynamic> json) =>
       _$MenuModelFromJson(json);
 
   bool get isAvailable => status == MenuStatus.available;
+
+  String get categoryName => categoryNames[category] ?? 'Other';
+
+  static const Map<int, String> categoryNames = {
+    1: 'Main Course',
+    2: 'Desserts',
+    3: 'Beverages',
+  };
 }
 
 @freezed
 class CategoryModel with _$CategoryModel {
   const factory CategoryModel({
-    required String id,
+    required int id,
     required String name,
-    String? description,
-    int? sortOrder,
   }) = _CategoryModel;
 
   factory CategoryModel.fromJson(Map<String, dynamic> json) =>

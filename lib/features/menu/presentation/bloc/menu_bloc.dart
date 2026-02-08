@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:restotrack_app/features/menu/data/models/menu_model.dart';
 import 'package:restotrack_app/features/menu/data/repository/menu_repository.dart';
 import 'package:restotrack_app/features/menu/presentation/bloc/menu_event.dart';
 import 'package:restotrack_app/features/menu/presentation/bloc/menu_state.dart';
@@ -9,7 +10,7 @@ class MenuBloc extends Bloc<MenuEvent, MenuState> {
         super(const MenuState()) {
     on<MenuLoadItems>(_onLoadItems);
     on<MenuLoadByCategory>(_onLoadByCategory);
-    on<MenuLoadCategories>(_onLoadCategories);
+    on<MenuLoadCategories>(_onLoadCategories); // Categories now derived from items
     on<MenuSearch>(_onSearch);
     on<MenuClearSearch>(_onClearSearch);
     on<MenuSelectCategory>(_onSelectCategory);
@@ -25,10 +26,19 @@ class MenuBloc extends Bloc<MenuEvent, MenuState> {
 
     try {
       final items = await _menuRepository.getMenuItems();
+      // Derive categories from loaded menu items
+      final categoryIds = items.map((i) => i.category).toSet().toList()..sort();
+      final categories = categoryIds
+          .map((id) => CategoryModel(
+                id: id,
+                name: MenuModel.categoryNames[id] ?? 'Other',
+              ))
+          .toList();
       emit(state.copyWith(
         isLoading: false,
         menuItems: items,
         filteredItems: items,
+        categories: categories,
       ));
     } catch (e) {
       emit(state.copyWith(
@@ -59,16 +69,11 @@ class MenuBloc extends Bloc<MenuEvent, MenuState> {
     }
   }
 
-  Future<void> _onLoadCategories(
+  void _onLoadCategories(
       MenuLoadCategories event,
       Emitter<MenuState> emit,
-      ) async {
-    try {
-      final categories = await _menuRepository.getCategories();
-      emit(state.copyWith(categories: categories));
-    } catch (e) {
-      // Silently fail for categories - not critical
-    }
+      ) {
+    // Categories are now derived from menu items in _onLoadItems
   }
 
   Future<void> _onSearch(
@@ -127,7 +132,7 @@ class MenuBloc extends Bloc<MenuEvent, MenuState> {
     } else {
       // Filter by category locally
       final filtered = state.menuItems
-          .where((item) => item.categoryId == event.categoryId)
+          .where((item) => item.category == event.categoryId)
           .toList();
       emit(state.copyWith(
         selectedCategoryId: event.categoryId,

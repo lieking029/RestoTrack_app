@@ -12,7 +12,7 @@ class MenuState with _$MenuState {
     @Default([]) List<CategoryModel> categories,
     @Default(false) bool isLoading,
     @Default(false) bool isSearching,
-    String? selectedCategoryId,
+    int? selectedCategoryId,
     String? searchQuery,
     String? errorMessage,
   }) = _MenuState;

@@ -3,7 +3,7 @@ import 'package:restotrack_app/features/menu/data/models/menu_model.dart';
 abstract class MenuRepository {
   Future<List<MenuModel>> getMenuItems();
 
-  Future<List<MenuModel>> getMenuItemsByCategory(String categoryId);
+  Future<List<MenuModel>> getMenuItemsByCategory(int categoryId);
 
   Future<List<CategoryModel>> getCategories();
 

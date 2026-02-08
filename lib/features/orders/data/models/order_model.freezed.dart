@@ -28,8 +28,7 @@ mixin _$OrderModel {
   double get tax => throw _privateConstructorUsedError;
   double get total => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
-  DateTime? get updatedAt =>
-      throw _privateConstructorUsedError; // Relationships
+  DateTime? get updatedAt => throw _privateConstructorUsedError;
   List<OrderItemModel> get items => throw _privateConstructorUsedError;
   UserSummary? get creator => throw _privateConstructorUsedError;
   UserSummary? get processor => throw _privateConstructorUsedError;
@@ -328,9 +327,7 @@ class _$OrderModelImpl extends _OrderModel {
   final DateTime? createdAt;
   @override
   final DateTime? updatedAt;
-// Relationships
   final List<OrderItemModel> _items;
-// Relationships
   @override
   @JsonKey()
   List<OrderItemModel> get items {
@@ -443,7 +440,7 @@ abstract class _OrderModel extends OrderModel {
   @override
   DateTime? get createdAt;
   @override
-  DateTime? get updatedAt; // Relationships
+  DateTime? get updatedAt;
   @override
   List<OrderItemModel> get items;
   @override

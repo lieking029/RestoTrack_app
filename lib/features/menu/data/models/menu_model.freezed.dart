@@ -24,12 +24,14 @@ mixin _$MenuModel {
   String get name => throw _privateConstructorUsedError;
   double get price => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
-  String? get imageUrl => throw _privateConstructorUsedError;
-  String? get categoryId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'dish_picture')
+  String? get dishPicture => throw _privateConstructorUsedError;
+  int get category => throw _privateConstructorUsedError;
   MenuStatus get status => throw _privateConstructorUsedError;
+  @JsonKey(name: 'created_at')
   DateTime? get createdAt => throw _privateConstructorUsedError;
-  DateTime? get updatedAt => throw _privateConstructorUsedError; // Relationship
-  CategoryModel? get category => throw _privateConstructorUsedError;
+  @JsonKey(name: 'updated_at')
+  DateTime? get updatedAt => throw _privateConstructorUsedError;
 
   /// Serializes this MenuModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -51,14 +53,11 @@ abstract class $MenuModelCopyWith<$Res> {
       String name,
       double price,
       String? description,
-      String? imageUrl,
-      String? categoryId,
+      @JsonKey(name: 'dish_picture') String? dishPicture,
+      int category,
       MenuStatus status,
-      DateTime? createdAt,
-      DateTime? updatedAt,
-      CategoryModel? category});
-
-  $CategoryModelCopyWith<$Res>? get category;
+      @JsonKey(name: 'created_at') DateTime? createdAt,
+      @JsonKey(name: 'updated_at') DateTime? updatedAt});
 }
 
 /// @nodoc
@@ -80,12 +79,11 @@ class _$MenuModelCopyWithImpl<$Res, $Val extends MenuModel>
     Object? name = null,
     Object? price = null,
     Object? description = freezed,
-    Object? imageUrl = freezed,
-    Object? categoryId = freezed,
+    Object? dishPicture = freezed,
+    Object? category = null,
     Object? status = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
-    Object? category = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -104,14 +102,14 @@ class _$MenuModelCopyWithImpl<$Res, $Val extends MenuModel>
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String?,
-      imageUrl: freezed == imageUrl
-          ? _value.imageUrl
-          : imageUrl // ignore: cast_nullable_to_non_nullable
+      dishPicture: freezed == dishPicture
+          ? _value.dishPicture
+          : dishPicture // ignore: cast_nullable_to_non_nullable
               as String?,
-      categoryId: freezed == categoryId
-          ? _value.categoryId
-          : categoryId // ignore: cast_nullable_to_non_nullable
-              as String?,
+      category: null == category
+          ? _value.category
+          : category // ignore: cast_nullable_to_non_nullable
+              as int,
       status: null == status
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
@@ -124,25 +122,7 @@ class _$MenuModelCopyWithImpl<$Res, $Val extends MenuModel>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
-      category: freezed == category
-          ? _value.category
-          : category // ignore: cast_nullable_to_non_nullable
-              as CategoryModel?,
     ) as $Val);
-  }
-
-  /// Create a copy of MenuModel
-  /// with the given fields replaced by the non-null parameter values.
-  @override
-  @pragma('vm:prefer-inline')
-  $CategoryModelCopyWith<$Res>? get category {
-    if (_value.category == null) {
-      return null;
-    }
-
-    return $CategoryModelCopyWith<$Res>(_value.category!, (value) {
-      return _then(_value.copyWith(category: value) as $Val);
-    });
   }
 }
 
@@ -159,15 +139,11 @@ abstract class _$$MenuModelImplCopyWith<$Res>
       String name,
       double price,
       String? description,
-      String? imageUrl,
-      String? categoryId,
+      @JsonKey(name: 'dish_picture') String? dishPicture,
+      int category,
       MenuStatus status,
-      DateTime? createdAt,
-      DateTime? updatedAt,
-      CategoryModel? category});
-
-  @override
-  $CategoryModelCopyWith<$Res>? get category;
+      @JsonKey(name: 'created_at') DateTime? createdAt,
+      @JsonKey(name: 'updated_at') DateTime? updatedAt});
 }
 
 /// @nodoc
@@ -187,12 +163,11 @@ class __$$MenuModelImplCopyWithImpl<$Res>
     Object? name = null,
     Object? price = null,
     Object? description = freezed,
-    Object? imageUrl = freezed,
-    Object? categoryId = freezed,
+    Object? dishPicture = freezed,
+    Object? category = null,
     Object? status = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
-    Object? category = freezed,
   }) {
     return _then(_$MenuModelImpl(
       id: null == id
@@ -211,14 +186,14 @@ class __$$MenuModelImplCopyWithImpl<$Res>
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
               as String?,
-      imageUrl: freezed == imageUrl
-          ? _value.imageUrl
-          : imageUrl // ignore: cast_nullable_to_non_nullable
+      dishPicture: freezed == dishPicture
+          ? _value.dishPicture
+          : dishPicture // ignore: cast_nullable_to_non_nullable
               as String?,
-      categoryId: freezed == categoryId
-          ? _value.categoryId
-          : categoryId // ignore: cast_nullable_to_non_nullable
-              as String?,
+      category: null == category
+          ? _value.category
+          : category // ignore: cast_nullable_to_non_nullable
+              as int,
       status: null == status
           ? _value.status
           : status // ignore: cast_nullable_to_non_nullable
@@ -231,10 +206,6 @@ class __$$MenuModelImplCopyWithImpl<$Res>
           ? _value.updatedAt
           : updatedAt // ignore: cast_nullable_to_non_nullable
               as DateTime?,
-      category: freezed == category
-          ? _value.category
-          : category // ignore: cast_nullable_to_non_nullable
-              as CategoryModel?,
     ));
   }
 }
@@ -247,12 +218,11 @@ class _$MenuModelImpl extends _MenuModel {
       required this.name,
       required this.price,
       this.description,
-      this.imageUrl,
-      this.categoryId,
+      @JsonKey(name: 'dish_picture') this.dishPicture,
+      this.category = 0,
       this.status = MenuStatus.available,
-      this.createdAt,
-      this.updatedAt,
-      this.category})
+      @JsonKey(name: 'created_at') this.createdAt,
+      @JsonKey(name: 'updated_at') this.updatedAt})
       : super._();
 
   factory _$MenuModelImpl.fromJson(Map<String, dynamic> json) =>
@@ -267,23 +237,24 @@ class _$MenuModelImpl extends _MenuModel {
   @override
   final String? description;
   @override
-  final String? imageUrl;
+  @JsonKey(name: 'dish_picture')
+  final String? dishPicture;
   @override
-  final String? categoryId;
+  @JsonKey()
+  final int category;
   @override
   @JsonKey()
   final MenuStatus status;
   @override
+  @JsonKey(name: 'created_at')
   final DateTime? createdAt;
   @override
+  @JsonKey(name: 'updated_at')
   final DateTime? updatedAt;
-// Relationship
-  @override
-  final CategoryModel? category;
 
   @override
   String toString() {
-    return 'MenuModel(id: $id, name: $name, price: $price, description: $description, imageUrl: $imageUrl, categoryId: $categoryId, status: $status, createdAt: $createdAt, updatedAt: $updatedAt, category: $category)';
+    return 'MenuModel(id: $id, name: $name, price: $price, description: $description, dishPicture: $dishPicture, category: $category, status: $status, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 
   @override
@@ -296,23 +267,21 @@ class _$MenuModelImpl extends _MenuModel {
             (identical(other.price, price) || other.price == price) &&
             (identical(other.description, description) ||
                 other.description == description) &&
-            (identical(other.imageUrl, imageUrl) ||
-                other.imageUrl == imageUrl) &&
-            (identical(other.categoryId, categoryId) ||
-                other.categoryId == categoryId) &&
+            (identical(other.dishPicture, dishPicture) ||
+                other.dishPicture == dishPicture) &&
+            (identical(other.category, category) ||
+                other.category == category) &&
             (identical(other.status, status) || other.status == status) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
-                other.updatedAt == updatedAt) &&
-            (identical(other.category, category) ||
-                other.category == category));
+                other.updatedAt == updatedAt));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, name, price, description,
-      imageUrl, categoryId, status, createdAt, updatedAt, category);
+      dishPicture, category, status, createdAt, updatedAt);
 
   /// Create a copy of MenuModel
   /// with the given fields replaced by the non-null parameter values.
@@ -332,16 +301,16 @@ class _$MenuModelImpl extends _MenuModel {
 
 abstract class _MenuModel extends MenuModel {
   const factory _MenuModel(
-      {required final String id,
-      required final String name,
-      required final double price,
-      final String? description,
-      final String? imageUrl,
-      final String? categoryId,
-      final MenuStatus status,
-      final DateTime? createdAt,
-      final DateTime? updatedAt,
-      final CategoryModel? category}) = _$MenuModelImpl;
+          {required final String id,
+          required final String name,
+          required final double price,
+          final String? description,
+          @JsonKey(name: 'dish_picture') final String? dishPicture,
+          final int category,
+          final MenuStatus status,
+          @JsonKey(name: 'created_at') final DateTime? createdAt,
+          @JsonKey(name: 'updated_at') final DateTime? updatedAt}) =
+      _$MenuModelImpl;
   const _MenuModel._() : super._();
 
   factory _MenuModel.fromJson(Map<String, dynamic> json) =
@@ -356,17 +325,18 @@ abstract class _MenuModel extends MenuModel {
   @override
   String? get description;
   @override
-  String? get imageUrl;
+  @JsonKey(name: 'dish_picture')
+  String? get dishPicture;
   @override
-  String? get categoryId;
+  int get category;
   @override
   MenuStatus get status;
   @override
+  @JsonKey(name: 'created_at')
   DateTime? get createdAt;
   @override
-  DateTime? get updatedAt; // Relationship
-  @override
-  CategoryModel? get category;
+  @JsonKey(name: 'updated_at')
+  DateTime? get updatedAt;
 
   /// Create a copy of MenuModel
   /// with the given fields replaced by the non-null parameter values.
@@ -382,10 +352,8 @@ CategoryModel _$CategoryModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$CategoryModel {
-  String get id => throw _privateConstructorUsedError;
+  int get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
-  String? get description => throw _privateConstructorUsedError;
-  int? get sortOrder => throw _privateConstructorUsedError;
 
   /// Serializes this CategoryModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -403,7 +371,7 @@ abstract class $CategoryModelCopyWith<$Res> {
           CategoryModel value, $Res Function(CategoryModel) then) =
       _$CategoryModelCopyWithImpl<$Res, CategoryModel>;
   @useResult
-  $Res call({String id, String name, String? description, int? sortOrder});
+  $Res call({int id, String name});
 }
 
 /// @nodoc
@@ -423,26 +391,16 @@ class _$CategoryModelCopyWithImpl<$Res, $Val extends CategoryModel>
   $Res call({
     Object? id = null,
     Object? name = null,
-    Object? description = freezed,
-    Object? sortOrder = freezed,
   }) {
     return _then(_value.copyWith(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String,
+              as int,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      description: freezed == description
-          ? _value.description
-          : description // ignore: cast_nullable_to_non_nullable
-              as String?,
-      sortOrder: freezed == sortOrder
-          ? _value.sortOrder
-          : sortOrder // ignore: cast_nullable_to_non_nullable
-              as int?,
     ) as $Val);
   }
 }
@@ -455,7 +413,7 @@ abstract class _$$CategoryModelImplCopyWith<$Res>
       __$$CategoryModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String id, String name, String? description, int? sortOrder});
+  $Res call({int id, String name});
 }
 
 /// @nodoc
@@ -473,26 +431,16 @@ class __$$CategoryModelImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? name = null,
-    Object? description = freezed,
-    Object? sortOrder = freezed,
   }) {
     return _then(_$CategoryModelImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
-              as String,
+              as int,
       name: null == name
           ? _value.name
           : name // ignore: cast_nullable_to_non_nullable
               as String,
-      description: freezed == description
-          ? _value.description
-          : description // ignore: cast_nullable_to_non_nullable
-              as String?,
-      sortOrder: freezed == sortOrder
-          ? _value.sortOrder
-          : sortOrder // ignore: cast_nullable_to_non_nullable
-              as int?,
     ));
   }
 }
@@ -500,24 +448,19 @@ class __$$CategoryModelImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$CategoryModelImpl implements _CategoryModel {
-  const _$CategoryModelImpl(
-      {required this.id, required this.name, this.description, this.sortOrder});
+  const _$CategoryModelImpl({required this.id, required this.name});
 
   factory _$CategoryModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$CategoryModelImplFromJson(json);
 
   @override
-  final String id;
+  final int id;
   @override
   final String name;
-  @override
-  final String? description;
-  @override
-  final int? sortOrder;
 
   @override
   String toString() {
-    return 'CategoryModel(id: $id, name: $name, description: $description, sortOrder: $sortOrder)';
+    return 'CategoryModel(id: $id, name: $name)';
   }
 
   @override
@@ -526,17 +469,12 @@ class _$CategoryModelImpl implements _CategoryModel {
         (other.runtimeType == runtimeType &&
             other is _$CategoryModelImpl &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.name, name) || other.name == name) &&
-            (identical(other.description, description) ||
-                other.description == description) &&
-            (identical(other.sortOrder, sortOrder) ||
-                other.sortOrder == sortOrder));
+            (identical(other.name, name) || other.name == name));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, id, name, description, sortOrder);
+  int get hashCode => Object.hash(runtimeType, id, name);
 
   /// Create a copy of CategoryModel
   /// with the given fields replaced by the non-null parameter values.
@@ -556,22 +494,16 @@ class _$CategoryModelImpl implements _CategoryModel {
 
 abstract class _CategoryModel implements CategoryModel {
   const factory _CategoryModel(
-      {required final String id,
-      required final String name,
-      final String? description,
-      final int? sortOrder}) = _$CategoryModelImpl;
+      {required final int id,
+      required final String name}) = _$CategoryModelImpl;
 
   factory _CategoryModel.fromJson(Map<String, dynamic> json) =
       _$CategoryModelImpl.fromJson;
 
   @override
-  String get id;
+  int get id;
   @override
   String get name;
-  @override
-  String? get description;
-  @override
-  int? get sortOrder;
 
   /// Create a copy of CategoryModel
   /// with the given fields replaced by the non-null parameter values.

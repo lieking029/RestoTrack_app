@@ -153,8 +153,8 @@ class _ServerHomePageState extends State<ServerHomePage>
                 child: _StatCard(
                   icon: Icons.restaurant_rounded,
                   iconColor: AppColors.purple,
-                  label: 'Preparing',
-                  value: '${state.preparingOrders.length}',
+                  label: 'In Preparation',
+                  value: '${state.inPreparationOrders.length}',
                 ),
               ),
               const SizedBox(width: 12),
@@ -224,7 +224,7 @@ class _ServerHomePageState extends State<ServerHomePage>
           controller: _tabController,
           children: [
             _OrderListView(
-              orders: [...state.pendingOrders, ...state.preparingOrders],
+              orders: [...state.pendingOrders, ...state.confirmedOrders, ...state.inPreparationOrders],
               emptyMessage: 'No active orders',
               emptyIcon: Icons.receipt_long_outlined,
             ),
@@ -522,7 +522,9 @@ class _StatusBadge extends StatelessWidget {
     switch (status) {
       case OrderStatus.pending:
         color = Colors.orange;
-      case OrderStatus.preparing:
+      case OrderStatus.confirmed:
+        color = Colors.blue;
+      case OrderStatus.inPreparation:
         color = AppColors.purple;
       case OrderStatus.ready:
         color = AppColors.primaryGreen;

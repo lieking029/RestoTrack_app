@@ -412,7 +412,7 @@ class _MenuItemCard extends StatelessWidget {
                             top: Radius.circular(14),
                           ),
                         ),
-                        child: menu.imageUrl != null
+                        child: menu.dishPicture != null
                             ? ClipRRect(
                                 borderRadius: const BorderRadius.vertical(
                                   top: Radius.circular(14),
@@ -428,7 +428,7 @@ class _MenuItemCard extends StatelessWidget {
                                           BlendMode.saturation,
                                         ),
                                   child: Image.network(
-                                    menu.imageUrl!,
+                                    menu.dishPicture!,
                                     fit: BoxFit.cover,
                                     errorBuilder: (_, __, ___) =>
                                         const _PlaceholderIcon(),

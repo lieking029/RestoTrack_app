@@ -14,7 +14,7 @@ class MenuLoadItems extends MenuEvent {
 class MenuLoadByCategory extends MenuEvent {
   const MenuLoadByCategory(this.categoryId);
 
-  final String categoryId;
+  final int categoryId;
 
   @override
   List<Object?> get props => [categoryId];
@@ -40,7 +40,7 @@ class MenuClearSearch extends MenuEvent {
 class MenuSelectCategory extends MenuEvent {
   const MenuSelectCategory(this.categoryId);
 
-  final String? categoryId;
+  final int? categoryId;
 
   @override
   List<Object?> get props => [categoryId];

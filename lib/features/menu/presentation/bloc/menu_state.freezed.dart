@@ -21,7 +21,7 @@ mixin _$MenuState {
   List<CategoryModel> get categories => throw _privateConstructorUsedError;
   bool get isLoading => throw _privateConstructorUsedError;
   bool get isSearching => throw _privateConstructorUsedError;
-  String? get selectedCategoryId => throw _privateConstructorUsedError;
+  int? get selectedCategoryId => throw _privateConstructorUsedError;
   String? get searchQuery => throw _privateConstructorUsedError;
   String? get errorMessage => throw _privateConstructorUsedError;
 
@@ -43,7 +43,7 @@ abstract class $MenuStateCopyWith<$Res> {
       List<CategoryModel> categories,
       bool isLoading,
       bool isSearching,
-      String? selectedCategoryId,
+      int? selectedCategoryId,
       String? searchQuery,
       String? errorMessage});
 }
@@ -96,7 +96,7 @@ class _$MenuStateCopyWithImpl<$Res, $Val extends MenuState>
       selectedCategoryId: freezed == selectedCategoryId
           ? _value.selectedCategoryId
           : selectedCategoryId // ignore: cast_nullable_to_non_nullable
-              as String?,
+              as int?,
       searchQuery: freezed == searchQuery
           ? _value.searchQuery
           : searchQuery // ignore: cast_nullable_to_non_nullable
@@ -123,7 +123,7 @@ abstract class _$$MenuStateImplCopyWith<$Res>
       List<CategoryModel> categories,
       bool isLoading,
       bool isSearching,
-      String? selectedCategoryId,
+      int? selectedCategoryId,
       String? searchQuery,
       String? errorMessage});
 }
@@ -174,7 +174,7 @@ class __$$MenuStateImplCopyWithImpl<$Res>
       selectedCategoryId: freezed == selectedCategoryId
           ? _value.selectedCategoryId
           : selectedCategoryId // ignore: cast_nullable_to_non_nullable
-              as String?,
+              as int?,
       searchQuery: freezed == searchQuery
           ? _value.searchQuery
           : searchQuery // ignore: cast_nullable_to_non_nullable
@@ -238,7 +238,7 @@ class _$MenuStateImpl extends _MenuState {
   @JsonKey()
   final bool isSearching;
   @override
-  final String? selectedCategoryId;
+  final int? selectedCategoryId;
   @override
   final String? searchQuery;
   @override
@@ -300,7 +300,7 @@ abstract class _MenuState extends MenuState {
       final List<CategoryModel> categories,
       final bool isLoading,
       final bool isSearching,
-      final String? selectedCategoryId,
+      final int? selectedCategoryId,
       final String? searchQuery,
       final String? errorMessage}) = _$MenuStateImpl;
   const _MenuState._() : super._();
@@ -316,7 +316,7 @@ abstract class _MenuState extends MenuState {
   @override
   bool get isSearching;
   @override
-  String? get selectedCategoryId;
+  int? get selectedCategoryId;
   @override
   String? get searchQuery;
   @override

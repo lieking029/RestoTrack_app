@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:restotrack_app/features/cashier/pos_payment.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:restotrack_app/core/theme/app_theme.dart';
+import 'package:restotrack_app/features/cashier/presentation/bloc/cashier_bloc.dart';
+import 'package:restotrack_app/features/cashier/presentation/bloc/cashier_event.dart';
+import 'package:restotrack_app/features/cashier/presentation/bloc/cashier_state.dart';
+import 'package:restotrack_app/features/cashier/presentation/pages/pos_payment_page.dart';
+import 'package:restotrack_app/features/orders/data/models/order_model.dart';
 
 class PosOrderListPage extends StatefulWidget {
   const PosOrderListPage({super.key});
@@ -11,16 +17,12 @@ class PosOrderListPage extends StatefulWidget {
 class _PosOrderListPageState extends State<PosOrderListPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  bool _isLoading = false;
-
-  List<MockOrder> _readyOrders = [];
-  List<MockOrder> _allOrders = [];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _loadOrders();
+    context.read<CashierBloc>().add(const CashierLoadOrders());
   }
 
   @override
@@ -29,23 +31,14 @@ class _PosOrderListPageState extends State<PosOrderListPage>
     super.dispose();
   }
 
-  Future<void> _loadOrders() async {
-    setState(() => _isLoading = true);
-
-    // TODO: Replace with actual API call
-    await Future.delayed(const Duration(milliseconds: 500));
-
-    setState(() {
-      _readyOrders = _mockReadyOrders;
-      _allOrders = _mockAllOrders;
-      _isLoading = false;
-    });
-  }
-
-  void _onOrderSelected(MockOrder order) {
+  void _onOrderSelected(OrderModel order) {
+    final cashierBloc = context.read<CashierBloc>();
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => PosPaymentPage(order: order),
+      MaterialPageRoute<void>(
+        builder: (_) => BlocProvider.value(
+          value: cashierBloc,
+          child: PosPaymentPage(order: order),
+        ),
       ),
     );
   }
@@ -67,7 +60,9 @@ class _PosOrderListPageState extends State<PosOrderListPage>
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
-            onPressed: _loadOrders,
+            onPressed: () {
+              context.read<CashierBloc>().add(const CashierRefreshOrders());
+            },
           ),
         ],
         bottom: TabBar(
@@ -75,38 +70,42 @@ class _PosOrderListPageState extends State<PosOrderListPage>
           indicatorColor: AppColors.white,
           indicatorWeight: 3,
           labelColor: AppColors.white,
-          unselectedLabelColor: AppColors.white.withOpacity(0.6),
+          unselectedLabelColor: AppColors.white.withValues(alpha: 0.6),
           tabs: [
-            Tab(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.payments_rounded, size: 18),
-                  const SizedBox(width: 8),
-                  const Text('Ready to Pay'),
-                  if (_readyOrders.isNotEmpty) ...[
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${_readyOrders.length}',
-                        style: const TextStyle(
-                          color: AppColors.primaryGreen,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
+            BlocBuilder<CashierBloc, CashierState>(
+              builder: (context, state) {
+                return Tab(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.payments_rounded, size: 18),
+                      const SizedBox(width: 8),
+                      const Text('Ready to Pay'),
+                      if (state.pendingOrders.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.white,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            '${state.pendingOrders.length}',
+                            style: const TextStyle(
+                              color: AppColors.primaryGreen,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+                      ],
+                    ],
+                  ),
+                );
+              },
             ),
             const Tab(
               child: Row(
@@ -121,26 +120,54 @@ class _PosOrderListPageState extends State<PosOrderListPage>
           ],
         ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : TabBarView(
-        controller: _tabController,
-        children: [
-          _buildOrderList(_readyOrders, isReadyTab: true),
-          _buildOrderList(_allOrders, isReadyTab: false),
-        ],
+      body: BlocConsumer<CashierBloc, CashierState>(
+        listener: (context, state) {
+          if (state.errorMessage != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.errorMessage!),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          return TabBarView(
+            controller: _tabController,
+            children: [
+              _buildOrderList(
+                state.pendingOrders,
+                isPendingTab: true,
+                state: state,
+              ),
+              _buildOrderList(
+                state.orders,
+                isPendingTab: false,
+                state: state,
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildOrderList(List<MockOrder> orders, {required bool isReadyTab}) {
+  Widget _buildOrderList(
+    List<OrderModel> orders, {
+    required bool isPendingTab,
+    required CashierState state,
+  }) {
     if (orders.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              isReadyTab
+              isPendingTab
                   ? Icons.payments_outlined
                   : Icons.receipt_long_outlined,
               size: 64,
@@ -148,7 +175,7 @@ class _PosOrderListPageState extends State<PosOrderListPage>
             ),
             const SizedBox(height: 16),
             Text(
-              isReadyTab ? 'No orders ready for payment' : 'No orders yet',
+              isPendingTab ? 'No pending orders' : 'No orders yet',
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey[600],
@@ -156,8 +183,8 @@ class _PosOrderListPageState extends State<PosOrderListPage>
             ),
             const SizedBox(height: 8),
             Text(
-              isReadyTab
-                  ? 'Orders will appear here when kitchen marks them ready'
+              isPendingTab
+                  ? 'Orders will appear here when servers create them'
                   : 'Orders will appear here once created',
               style: TextStyle(
                 fontSize: 14,
@@ -171,7 +198,9 @@ class _PosOrderListPageState extends State<PosOrderListPage>
     }
 
     return RefreshIndicator(
-      onRefresh: _loadOrders,
+      onRefresh: () async {
+        context.read<CashierBloc>().add(const CashierRefreshOrders());
+      },
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: orders.length,
@@ -179,7 +208,9 @@ class _PosOrderListPageState extends State<PosOrderListPage>
           final order = orders[index];
           return _OrderCard(
             order: order,
-            onTap: order.status == 'ready' ? () => _onOrderSelected(order) : null,
+            onTap: order.status == OrderStatus.pending
+                ? () => _onOrderSelected(order)
+                : null,
           );
         },
       ),
@@ -193,12 +224,12 @@ class _OrderCard extends StatelessWidget {
     this.onTap,
   });
 
-  final MockOrder order;
+  final OrderModel order;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final isReady = order.status == 'ready';
+    final isPending = order.status == OrderStatus.pending;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -206,17 +237,17 @@ class _OrderCard extends StatelessWidget {
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isReady ? AppColors.primaryGreen : AppColors.border,
-          width: isReady ? 2 : 1,
+          color: isPending ? AppColors.primaryGreen : AppColors.border,
+          width: isPending ? 2 : 1,
         ),
-        boxShadow: isReady
+        boxShadow: isPending
             ? [
-          BoxShadow(
-            color: AppColors.primaryGreen.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ]
+                BoxShadow(
+                  color: AppColors.primaryGreen.withValues(alpha: 0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ]
             : null,
       ),
       child: Material(
@@ -234,16 +265,14 @@ class _OrderCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: isReady
-                            ? AppColors.primaryGreen.withOpacity(0.1)
+                        color: isPending
+                            ? AppColors.primaryGreen.withValues(alpha: 0.1)
                             : AppColors.background,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
-                        order.type == 'Dine In'
-                            ? Icons.restaurant_rounded
-                            : Icons.takeout_dining_rounded,
-                        color: isReady
+                        Icons.restaurant_rounded,
+                        color: isPending
                             ? AppColors.primaryGreen
                             : AppColors.textSecondary,
                         size: 20,
@@ -270,9 +299,7 @@ class _OrderCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            order.type == 'Dine In'
-                                ? 'Table ${order.tableNumber}'
-                                : 'Takeout',
+                            '${order.itemCount} items',
                             style: const TextStyle(
                               color: AppColors.textSecondary,
                               fontSize: 13,
@@ -285,7 +312,7 @@ class _OrderCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          '₱${order.total.toStringAsFixed(2)}',
+                          '\u20B1${order.total.toStringAsFixed(2)}',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
@@ -293,7 +320,7 @@ class _OrderCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '${order.items.length} items',
+                          order.timeAgo,
                           style: const TextStyle(
                             color: AppColors.textSecondary,
                             fontSize: 12,
@@ -315,7 +342,9 @@ class _OrderCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Text(
-                        order.items.map((i) => '${i.quantity}x ${i.name}').join(', '),
+                        order.items
+                            .map((i) => '${i.quantity}x ${i.name}')
+                            .join(', '),
                         style: const TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 13,
@@ -324,19 +353,21 @@ class _OrderCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Text(
-                      order.time,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 12,
+                    if (order.creator != null) ...[
+                      const SizedBox(width: 12),
+                      Text(
+                        order.creator!.firstName,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
 
                 // Action Button for Ready Orders
-                if (isReady) ...[
+                if (isPending) ...[
                   const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
@@ -371,181 +402,33 @@ class _OrderCard extends StatelessWidget {
 class _StatusBadge extends StatelessWidget {
   const _StatusBadge({required this.status});
 
-  final String status;
+  final OrderStatus status;
 
   @override
   Widget build(BuildContext context) {
-    final config = _getStatusConfig(status);
+    final (label, color) = switch (status) {
+      OrderStatus.pending => ('Pending', Colors.orange),
+      OrderStatus.confirmed => ('Confirmed', Colors.blue),
+      OrderStatus.inPreparation => ('In Preparation', AppColors.purple),
+      OrderStatus.ready => ('Ready', AppColors.primaryGreen),
+      OrderStatus.completed => ('Paid', AppColors.primaryGreen),
+      OrderStatus.cancelled => ('Cancelled', Colors.red),
+    };
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: config.color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        config.label,
+        label,
         style: TextStyle(
-          color: config.color,
+          color: color,
           fontSize: 11,
           fontWeight: FontWeight.w600,
         ),
       ),
     );
   }
-
-  _StatusConfig _getStatusConfig(String status) {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return _StatusConfig('Pending', Colors.orange);
-      case 'preparing':
-        return _StatusConfig('Preparing', AppColors.purple);
-      case 'ready':
-        return _StatusConfig('Ready', AppColors.primaryGreen);
-      case 'completed':
-        return _StatusConfig('Paid', AppColors.success);
-      case 'cancelled':
-        return _StatusConfig('Cancelled', Colors.red);
-      default:
-        return _StatusConfig(status, Colors.grey);
-    }
-  }
 }
-
-class _StatusConfig {
-  final String label;
-  final Color color;
-
-  const _StatusConfig(this.label, this.color);
-}
-
-// ============ MOCK DATA - Replace with your real models ============
-
-class MockOrder {
-  final String orderNumber;
-  final String type;
-  final String? tableNumber;
-  final String serverName;
-  final String status;
-  final String time;
-  final List<MockOrderItem> items;
-  final double subtotal;
-  final double tax;
-  final double total;
-
-  const MockOrder({
-    required this.orderNumber,
-    required this.type,
-    this.tableNumber,
-    required this.serverName,
-    required this.status,
-    required this.time,
-    required this.items,
-    required this.subtotal,
-    required this.tax,
-    required this.total,
-  });
-}
-
-class MockOrderItem {
-  final String name;
-  final int quantity;
-  final double price;
-  final double total;
-  final String? notes;
-
-  const MockOrderItem({
-    required this.name,
-    required this.quantity,
-    required this.price,
-    required this.total,
-    this.notes,
-  });
-}
-
-// Ready orders (for payment)
-final _mockReadyOrders = [
-  MockOrder(
-    orderNumber: '1248',
-    type: 'Dine In',
-    tableNumber: '3',
-    serverName: 'Maria Santos',
-    status: 'ready',
-    time: '2 mins ago',
-    items: const [
-      MockOrderItem(name: 'Chicken Adobo', quantity: 2, price: 180, total: 360),
-      MockOrderItem(name: 'Plain Rice', quantity: 2, price: 35, total: 70),
-      MockOrderItem(name: 'Iced Tea', quantity: 2, price: 45, total: 90),
-    ],
-    subtotal: 520.00,
-    tax: 62.40,
-    total: 582.40,
-  ),
-  MockOrder(
-    orderNumber: '1247',
-    type: 'Takeout',
-    serverName: 'Juan Dela Cruz',
-    status: 'ready',
-    time: '5 mins ago',
-    items: const [
-      MockOrderItem(name: 'Sinigang na Baboy', quantity: 1, price: 220, total: 220),
-      MockOrderItem(name: 'Plain Rice', quantity: 3, price: 35, total: 105),
-    ],
-    subtotal: 325.00,
-    tax: 39.00,
-    total: 364.00,
-  ),
-  MockOrder(
-    orderNumber: '1245',
-    type: 'Dine In',
-    tableNumber: '5',
-    serverName: 'Maria Santos',
-    status: 'ready',
-    time: '8 mins ago',
-    items: const [
-      MockOrderItem(name: 'Chicken Adobo', quantity: 2, price: 180, total: 360),
-      MockOrderItem(name: 'Sinigang na Baboy', quantity: 1, price: 220, total: 220),
-      MockOrderItem(name: 'Plain Rice', quantity: 3, price: 35, total: 105),
-      MockOrderItem(name: 'Halo-Halo', quantity: 2, price: 85, total: 170),
-      MockOrderItem(name: 'Iced Tea', quantity: 3, price: 45, total: 135),
-    ],
-    subtotal: 990.00,
-    tax: 118.80,
-    total: 1108.80,
-  ),
-];
-
-// All orders (mixed statuses)
-final _mockAllOrders = [
-  ..._mockReadyOrders,
-  MockOrder(
-    orderNumber: '1249',
-    type: 'Dine In',
-    tableNumber: '7',
-    serverName: 'Ana Reyes',
-    status: 'preparing',
-    time: '1 min ago',
-    items: const [
-      MockOrderItem(name: 'Kare-Kare', quantity: 1, price: 280, total: 280),
-      MockOrderItem(name: 'Plain Rice', quantity: 2, price: 35, total: 70),
-    ],
-    subtotal: 350.00,
-    tax: 42.00,
-    total: 392.00,
-  ),
-  MockOrder(
-    orderNumber: '1246',
-    type: 'Dine In',
-    tableNumber: '2',
-    serverName: 'Juan Dela Cruz',
-    status: 'completed',
-    time: '15 mins ago',
-    items: const [
-      MockOrderItem(name: 'Lechon Kawali', quantity: 1, price: 200, total: 200),
-      MockOrderItem(name: 'Plain Rice', quantity: 1, price: 35, total: 35),
-    ],
-    subtotal: 235.00,
-    tax: 28.20,
-    total: 263.20,
-  ),
-];
