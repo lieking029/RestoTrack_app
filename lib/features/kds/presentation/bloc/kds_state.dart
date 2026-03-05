@@ -16,6 +16,7 @@ class KdsState with _$KdsState {
     @Default([]) List<OrderModel> orders,
     @Default(KdsStateStatus.initial) KdsStateStatus status,
     String? errorMessage,
+    String? successMessage,
     @Default(false) bool isUpdating,
     String? updatingOrderId,
   }) = _KdsState;

@@ -85,27 +85,25 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
     );
 
     try {
-      final completedOrder = await _cashierRepository.processPayment(
+      final paidOrder = state.orders.firstWhere((o) => o.id == event.orderId);
+
+      await _cashierRepository.processPayment(
         orderId: event.orderId,
         amountPaid: event.amountPaid,
         paymentMethod: event.paymentMethod,
       );
 
-      // Update the order in the list
-      final updatedOrders = state.orders.map((order) {
-        return order.id == event.orderId ? completedOrder : order;
-      }).toList();
-
-      // Recalculate stats
+      // Refresh orders and stats from backend
+      final orders = await _cashierRepository.getAllOrders();
       final stats = await _cashierRepository.getTodayStats();
 
       emit(
         state.copyWith(
           isProcessingPayment: false,
           processingOrderId: null,
-          orders: updatedOrders,
+          orders: orders,
           stats: stats,
-          lastCompletedOrder: completedOrder,
+          lastCompletedOrder: paidOrder,
         ),
       );
     } catch (e) {

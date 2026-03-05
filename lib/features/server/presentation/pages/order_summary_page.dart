@@ -39,7 +39,6 @@ class OrderSummaryPage extends StatelessWidget {
           body: state.isEmpty
               ? _buildEmptyState(context)
               : _buildContent(context, state),
-          bottomNavigationBar: state.isEmpty ? null : _buildBottomBar(context, state),
         );
       },
     );
@@ -71,16 +70,37 @@ class OrderSummaryPage extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context, CartState state) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildItemsList(context, state.cart),
-          const SizedBox(height: 16),
-          _buildOrderSummary(state),
-        ],
-      ),
+    return Row(
+      children: [
+        Expanded(
+          flex: 60,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: _buildItemsList(context, state.cart),
+          ),
+        ),
+        Expanded(
+          flex: 40,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: AppColors.white,
+              border: Border(
+                left: BorderSide(color: AppColors.border),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  _buildOrderSummary(state),
+                  const SizedBox(height: 24),
+                  _buildSubmitButton(context, state),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -187,70 +207,27 @@ class OrderSummaryPage extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomBar(BuildContext context, CartState state) {
-    return Container(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: MediaQuery.of(context).padding.bottom + 16,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Total
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Total Amount',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 14,
-                ),
-              ),
-              Text(
-                '₱${state.total.toStringAsFixed(2)}',
-                style: const TextStyle(
-                  color: AppColors.primaryGreen,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Submit button
-          SizedBox(
-            width: double.infinity,
-            height: 56,
-            child: ElevatedButton(
-              onPressed: state.isSubmitting
-                  ? null
-                  : () {
+  Widget _buildSubmitButton(BuildContext context, CartState state) {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton(
+        onPressed: state.isSubmitting
+            ? null
+            : () {
                 context.read<CartBloc>().add(const CartSubmitOrder());
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryGreen,
-                foregroundColor: AppColors.white,
-                disabledBackgroundColor: AppColors.border,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 0,
-              ),
-              child: state.isSubmitting
-                  ? const SizedBox(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primaryGreen,
+          foregroundColor: AppColors.white,
+          disabledBackgroundColor: AppColors.border,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 0,
+        ),
+        child: state.isSubmitting
+            ? const SizedBox(
                 width: 24,
                 height: 24,
                 child: CircularProgressIndicator(
@@ -258,7 +235,7 @@ class OrderSummaryPage extends StatelessWidget {
                   strokeWidth: 2.5,
                 ),
               )
-                  : const Row(
+            : const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.send_rounded, size: 20),
@@ -272,9 +249,6 @@ class OrderSummaryPage extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-          ),
-        ],
       ),
     );
   }

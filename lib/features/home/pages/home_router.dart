@@ -6,6 +6,7 @@ import 'package:restotrack_app/features/cashier/presentation/bloc/cashier_bloc.d
 import 'package:restotrack_app/features/home/pages/cashier_home_page.dart';
 import 'package:restotrack_app/features/home/pages/kitchen_home_page.dart';
 import 'package:restotrack_app/features/home/pages/server_home_page.dart';
+import 'package:restotrack_app/features/kds/presentation/bloc/kds_bloc.dart';
 import 'package:restotrack_app/features/menu/presentation/bloc/menu_bloc.dart';
 import 'package:restotrack_app/features/orders/presentation/bloc/cart_bloc.dart';
 import 'package:restotrack_app/features/orders/presentation/bloc/order_bloc.dart';
@@ -39,6 +40,7 @@ class HomeRouter extends StatelessWidget {
       return MultiBlocProvider(
         providers: [
           BlocProvider(create: (_) => sl<OrderBloc>()),
+          BlocProvider(create: (_) => sl<KdsBloc>()),
         ],
         child: KitchenHomePage(user: user),
       );

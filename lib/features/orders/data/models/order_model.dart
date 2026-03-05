@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'package:restotrack_app/core/utils/json_utils.dart';
 import 'package:restotrack_app/features/orders/data/models/order_item_model.dart';
 
 part 'order_model.freezed.dart';
@@ -42,6 +43,13 @@ enum OrderStatus {
   bool get canComplete => this == ready;
 }
 
+double _toDouble(dynamic value) {
+  if (value == null) return 0;
+  if (value is num) return value.toDouble();
+  if (value is String) return double.tryParse(value) ?? 0;
+  return 0;
+}
+
 @freezed
 class OrderModel with _$OrderModel {
 
@@ -50,9 +58,9 @@ class OrderModel with _$OrderModel {
     required String createdBy,
     String? processedBy,
     @Default(OrderStatus.pending) OrderStatus status,
-    @Default(0) double subtotal,
-    @Default(0) double tax,
-    @Default(0) double total,
+    @JsonKey(fromJson: _toDouble) @Default(0) double subtotal,
+    @JsonKey(fromJson: _toDouble) @Default(0) double tax,
+    @JsonKey(fromJson: _toDouble) @Default(0) double total,
     DateTime? createdAt,
     DateTime? updatedAt,
     @Default([]) List<OrderItemModel> items,
@@ -62,7 +70,7 @@ class OrderModel with _$OrderModel {
   const OrderModel._();
 
   factory OrderModel.fromJson(Map<String, dynamic> json) =>
-      _$OrderModelFromJson(json);
+      _$OrderModelFromJson(normalizeJsonKeys(json));
 
   int get itemCount => items.fold(0, (sum, item) => sum + item.quantity);
 
@@ -87,5 +95,5 @@ class UserSummary with _$UserSummary {
   }) = _UserSummary;
 
   factory UserSummary.fromJson(Map<String, dynamic> json) =>
-      _$UserSummaryFromJson(json);
+      _$UserSummaryFromJson(normalizeJsonKeys(json));
 }

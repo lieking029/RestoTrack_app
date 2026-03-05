@@ -14,6 +14,7 @@ class ApiClient {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
+          'ngrok-skip-browser-warning': 'true',
         },
       ),
     );
@@ -100,8 +101,16 @@ class ApiClient {
   Future<Response<dynamic>> getKitchenOrders() =>
       _dio.get(ApiConstants.kitchenOrders);
 
-  Future<Response<dynamic>> getCashierOrders() =>
-      _dio.get(ApiConstants.cashierOrders);
+  Future<Response<dynamic>> getCashierOrders({int? status}) {
+    final queryParams = <String, dynamic>{};
+    if (status != null) {
+      queryParams['status'] = status;
+    }
+    return _dio.get(
+      ApiConstants.cashierOrders,
+      queryParameters: queryParams.isNotEmpty ? queryParams : null,
+    );
+  }
 
   Future<Response<dynamic>> updateOrderStatus(String orderId, String status) =>
       _dio.patch('${ApiConstants.kitchenOrders}/$orderId',
@@ -139,6 +148,19 @@ class ApiClient {
 
   Future<Response<dynamic>> getOrder(String orderId) =>
       _dio.get('${ApiConstants.order}/$orderId');
+
+  Future<Response<dynamic>> getSalesReport({
+    String? startDate,
+    String? endDate,
+  }) {
+    final queryParams = <String, dynamic>{};
+    if (startDate != null) queryParams['start_date'] = startDate;
+    if (endDate != null) queryParams['end_date'] = endDate;
+    return _dio.get(
+      ApiConstants.salesReport,
+      queryParameters: queryParams.isNotEmpty ? queryParams : null,
+    );
+  }
 
   Future<Response<dynamic>> getMenus({String? categoryId, String? search}) {
     final queryParams = <String, dynamic>{};

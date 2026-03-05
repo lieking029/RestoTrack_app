@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:restotrack_app/core/di/injection.dart' as di;
 import 'package:restotrack_app/core/theme/app_theme.dart';
@@ -10,6 +11,10 @@ import 'package:restotrack_app/features/home/pages/home_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ]);
   await di.initDependencies();
   runApp(const MyApp());
 }

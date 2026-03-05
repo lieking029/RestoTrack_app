@@ -20,6 +20,7 @@ class OrderState with _$OrderState {
     OrderModel? selectedOrder,
     OrderStatus? filterStatus,
     String? errorMessage,
+    String? successMessage,
     @Default(false) bool isUpdating,
   }) = _OrderState;
 

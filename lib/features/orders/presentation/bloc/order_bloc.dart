@@ -85,7 +85,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     OrderCancelOrder event,
     Emitter<OrderState> emit,
   ) async {
-    emit(state.copyWith(isUpdating: true, errorMessage: null));
+    emit(state.copyWith(isUpdating: true, errorMessage: null, successMessage: null));
 
     try {
       final updatedOrder = await _orderRepository.cancelOrder(
@@ -101,6 +101,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
       emit(state.copyWith(
         isUpdating: false,
         orders: updatedOrders,
+        successMessage: 'Order cancelled successfully',
       ));
     } catch (e) {
       emit(state.copyWith(
@@ -114,7 +115,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     OrderCompleteOrder event,
     Emitter<OrderState> emit,
   ) async {
-    emit(state.copyWith(isUpdating: true, errorMessage: null));
+    emit(state.copyWith(isUpdating: true, errorMessage: null, successMessage: null));
 
     try {
       final updatedOrder = await _orderRepository.completeOrder(event.id);
@@ -127,6 +128,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
       emit(state.copyWith(
         isUpdating: false,
         orders: updatedOrders,
+        successMessage: 'Order served successfully',
       ));
     } catch (e) {
       emit(state.copyWith(
@@ -140,6 +142,6 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     OrderClearError event,
     Emitter<OrderState> emit,
   ) {
-    emit(state.copyWith(errorMessage: null));
+    emit(state.copyWith(errorMessage: null, successMessage: null));
   }
 }

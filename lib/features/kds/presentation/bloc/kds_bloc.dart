@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:restotrack_app/features/kds/data/repositories/kds_repository.dart';
 import 'package:restotrack_app/features/kds/presentation/bloc/kds_event.dart';
 import 'package:restotrack_app/features/kds/presentation/bloc/kds_state.dart';
+import 'package:restotrack_app/features/orders/data/models/order_model.dart';
 
 class KdsBloc extends Bloc<KdsEvent, KdsState> {
   KdsBloc({required KdsRepository kdsRepository})
@@ -31,7 +32,7 @@ class KdsBloc extends Bloc<KdsEvent, KdsState> {
       emit(
         state.copyWith(
           status: KdsStateStatus.success,
-          orders: orders,
+          orders: _mergeWithReadyOrders(orders),
         ),
       );
     } catch (e) {
@@ -53,7 +54,7 @@ class KdsBloc extends Bloc<KdsEvent, KdsState> {
       emit(
         state.copyWith(
           status: KdsStateStatus.success,
-          orders: orders,
+          orders: _mergeWithReadyOrders(orders),
           errorMessage: null,
         ),
       );
@@ -67,6 +68,18 @@ class KdsBloc extends Bloc<KdsEvent, KdsState> {
     }
   }
 
+  /// The API may not return ready orders since the kitchen is "done" with them.
+  /// Preserve ready orders from the current state so they remain visible in the
+  /// Ready tab until the next full load.
+  List<OrderModel> _mergeWithReadyOrders(List<OrderModel> freshOrders) {
+    final freshIds = freshOrders.map((o) => o.id).toSet();
+    final retainedReady = state.orders
+        .where((o) =>
+            o.status == OrderStatus.ready && !freshIds.contains(o.id))
+        .toList();
+    return [...freshOrders, ...retainedReady];
+  }
+
   Future<void> _onUpdateOrderStatus(
     KdsUpdateOrderStatus event,
     Emitter<KdsState> emit,
@@ -76,6 +89,7 @@ class KdsBloc extends Bloc<KdsEvent, KdsState> {
         isUpdating: true,
         updatingOrderId: event.orderId,
         errorMessage: null,
+        successMessage: null,
       ),
     );
 
@@ -89,11 +103,18 @@ class KdsBloc extends Bloc<KdsEvent, KdsState> {
         return order.id == event.orderId ? updatedOrder : order;
       }).toList();
 
+      final statusLabel = switch (event.newStatus) {
+        OrderStatus.inPreparation => 'Order is now being prepared',
+        OrderStatus.ready => 'Order marked as ready',
+        _ => 'Order status updated',
+      };
+
       emit(
         state.copyWith(
           isUpdating: false,
           updatingOrderId: null,
           orders: updatedOrders,
+          successMessage: statusLabel,
         ),
       );
     } catch (e) {
@@ -111,6 +132,6 @@ class KdsBloc extends Bloc<KdsEvent, KdsState> {
     KdsClearError event,
     Emitter<KdsState> emit,
   ) {
-    emit(state.copyWith(errorMessage: null));
+    emit(state.copyWith(errorMessage: null, successMessage: null));
   }
 }

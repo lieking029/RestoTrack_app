@@ -24,8 +24,10 @@ mixin _$OrderItemModel {
   String get orderId => throw _privateConstructorUsedError;
   String get menuId => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _itemToDouble)
   double get unitPrice => throw _privateConstructorUsedError;
   int get quantity => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _itemToDouble)
   double get total => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
@@ -51,9 +53,9 @@ abstract class $OrderItemModelCopyWith<$Res> {
       String orderId,
       String menuId,
       String name,
-      double unitPrice,
+      @JsonKey(fromJson: _itemToDouble) double unitPrice,
       int quantity,
-      double total,
+      @JsonKey(fromJson: _itemToDouble) double total,
       DateTime? createdAt,
       DateTime? updatedAt});
 }
@@ -137,9 +139,9 @@ abstract class _$$OrderItemModelImplCopyWith<$Res>
       String orderId,
       String menuId,
       String name,
-      double unitPrice,
+      @JsonKey(fromJson: _itemToDouble) double unitPrice,
       int quantity,
-      double total,
+      @JsonKey(fromJson: _itemToDouble) double total,
       DateTime? createdAt,
       DateTime? updatedAt});
 }
@@ -216,9 +218,9 @@ class _$OrderItemModelImpl extends _OrderItemModel {
       required this.orderId,
       required this.menuId,
       required this.name,
-      required this.unitPrice,
+      @JsonKey(fromJson: _itemToDouble) required this.unitPrice,
       required this.quantity,
-      required this.total,
+      @JsonKey(fromJson: _itemToDouble) required this.total,
       this.createdAt,
       this.updatedAt})
       : super._();
@@ -235,10 +237,12 @@ class _$OrderItemModelImpl extends _OrderItemModel {
   @override
   final String name;
   @override
+  @JsonKey(fromJson: _itemToDouble)
   final double unitPrice;
   @override
   final int quantity;
   @override
+  @JsonKey(fromJson: _itemToDouble)
   final double total;
   @override
   final DateTime? createdAt;
@@ -298,9 +302,9 @@ abstract class _OrderItemModel extends OrderItemModel {
       required final String orderId,
       required final String menuId,
       required final String name,
-      required final double unitPrice,
+      @JsonKey(fromJson: _itemToDouble) required final double unitPrice,
       required final int quantity,
-      required final double total,
+      @JsonKey(fromJson: _itemToDouble) required final double total,
       final DateTime? createdAt,
       final DateTime? updatedAt}) = _$OrderItemModelImpl;
   const _OrderItemModel._() : super._();
@@ -317,10 +321,12 @@ abstract class _OrderItemModel extends OrderItemModel {
   @override
   String get name;
   @override
+  @JsonKey(fromJson: _itemToDouble)
   double get unitPrice;
   @override
   int get quantity;
   @override
+  @JsonKey(fromJson: _itemToDouble)
   double get total;
   @override
   DateTime? get createdAt;

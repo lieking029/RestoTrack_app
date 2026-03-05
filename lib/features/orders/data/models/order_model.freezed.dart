@@ -24,8 +24,11 @@ mixin _$OrderModel {
   String get createdBy => throw _privateConstructorUsedError;
   String? get processedBy => throw _privateConstructorUsedError;
   OrderStatus get status => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _toDouble)
   double get subtotal => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _toDouble)
   double get tax => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _toDouble)
   double get total => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
@@ -54,9 +57,9 @@ abstract class $OrderModelCopyWith<$Res> {
       String createdBy,
       String? processedBy,
       OrderStatus status,
-      double subtotal,
-      double tax,
-      double total,
+      @JsonKey(fromJson: _toDouble) double subtotal,
+      @JsonKey(fromJson: _toDouble) double tax,
+      @JsonKey(fromJson: _toDouble) double total,
       DateTime? createdAt,
       DateTime? updatedAt,
       List<OrderItemModel> items,
@@ -189,9 +192,9 @@ abstract class _$$OrderModelImplCopyWith<$Res>
       String createdBy,
       String? processedBy,
       OrderStatus status,
-      double subtotal,
-      double tax,
-      double total,
+      @JsonKey(fromJson: _toDouble) double subtotal,
+      @JsonKey(fromJson: _toDouble) double tax,
+      @JsonKey(fromJson: _toDouble) double total,
       DateTime? createdAt,
       DateTime? updatedAt,
       List<OrderItemModel> items,
@@ -291,9 +294,9 @@ class _$OrderModelImpl extends _OrderModel {
       required this.createdBy,
       this.processedBy,
       this.status = OrderStatus.pending,
-      this.subtotal = 0,
-      this.tax = 0,
-      this.total = 0,
+      @JsonKey(fromJson: _toDouble) this.subtotal = 0,
+      @JsonKey(fromJson: _toDouble) this.tax = 0,
+      @JsonKey(fromJson: _toDouble) this.total = 0,
       this.createdAt,
       this.updatedAt,
       final List<OrderItemModel> items = const [],
@@ -315,13 +318,13 @@ class _$OrderModelImpl extends _OrderModel {
   @JsonKey()
   final OrderStatus status;
   @override
-  @JsonKey()
+  @JsonKey(fromJson: _toDouble)
   final double subtotal;
   @override
-  @JsonKey()
+  @JsonKey(fromJson: _toDouble)
   final double tax;
   @override
-  @JsonKey()
+  @JsonKey(fromJson: _toDouble)
   final double total;
   @override
   final DateTime? createdAt;
@@ -410,9 +413,9 @@ abstract class _OrderModel extends OrderModel {
       required final String createdBy,
       final String? processedBy,
       final OrderStatus status,
-      final double subtotal,
-      final double tax,
-      final double total,
+      @JsonKey(fromJson: _toDouble) final double subtotal,
+      @JsonKey(fromJson: _toDouble) final double tax,
+      @JsonKey(fromJson: _toDouble) final double total,
       final DateTime? createdAt,
       final DateTime? updatedAt,
       final List<OrderItemModel> items,
@@ -432,10 +435,13 @@ abstract class _OrderModel extends OrderModel {
   @override
   OrderStatus get status;
   @override
+  @JsonKey(fromJson: _toDouble)
   double get subtotal;
   @override
+  @JsonKey(fromJson: _toDouble)
   double get tax;
   @override
+  @JsonKey(fromJson: _toDouble)
   double get total;
   @override
   DateTime? get createdAt;

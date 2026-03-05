@@ -5,7 +5,7 @@ abstract class CashierRepository {
 
   Future<List<OrderModel>> getAllOrders();
 
-  Future<OrderModel> processPayment({
+  Future<void> processPayment({
     required String orderId,
     required double amountPaid,
     required String paymentMethod,

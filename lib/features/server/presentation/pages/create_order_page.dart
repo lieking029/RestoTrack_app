@@ -73,17 +73,24 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
           ),
         ],
       ),
-      body: Column(
+      body: Row(
         children: [
-          // Search Bar
-          _buildSearchBar(),
-          // Categories
-          _buildCategoryChips(),
-          // Menu Items
-          Expanded(child: _buildMenuGrid()),
+          Expanded(
+            flex: 65,
+            child: Column(
+              children: [
+                _buildSearchBar(),
+                _buildCategoryChips(),
+                Expanded(child: _buildMenuGrid()),
+              ],
+            ),
+          ),
+          Expanded(
+            flex: 35,
+            child: _buildCartSidebar(),
+          ),
         ],
       ),
-      bottomNavigationBar: _buildCartBar(),
     );
   }
 
@@ -204,7 +211,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
         return GridView.builder(
           padding: const EdgeInsets.all(16),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
+            crossAxisCount: 3,
             childAspectRatio: 0.85,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
@@ -219,113 +226,201 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     );
   }
 
-  Widget _buildCartBar() {
+  Widget _buildCartSidebar() {
     return BlocBuilder<CartBloc, CartState>(
       builder: (context, state) {
-        if (state.isEmpty) return const SizedBox.shrink();
-
         return Container(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 12,
-            bottom: MediaQuery.of(context).padding.bottom + 12,
-          ),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: AppColors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, -5),
-              ),
-            ],
+            border: Border(
+              left: BorderSide(color: AppColors.border),
+            ),
           ),
-          child: SafeArea(
-            child: Row(
-              children: [
-                // Cart info
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryGreen.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.shopping_cart_rounded,
-                        color: AppColors.primaryGreen,
-                        size: 20,
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const Icon(Icons.shopping_cart_rounded,
+                        color: AppColors.primaryGreen, size: 20),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Cart',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: AppColors.textPrimary,
                       ),
-                      const SizedBox(width: 6),
+                    ),
+                    const Spacer(),
+                    if (!state.isEmpty)
                       Text(
-                        '${state.itemCount}',
+                        '${state.itemCount} items',
                         style: const TextStyle(
-                          color: AppColors.primaryGreen,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // Total
-                Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Total',
-                        style: TextStyle(
                           color: AppColors.textSecondary,
-                          fontSize: 12,
+                          fontSize: 13,
                         ),
                       ),
-                      Text(
-                        '₱${state.total.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ],
+                  ],
+                ),
+              ),
+              const Divider(height: 1, color: AppColors.border),
+              if (state.isEmpty)
+                const Expanded(
+                  child: Center(
+                    child: Text(
+                      'Add items to get started',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
+                  ),
+                )
+              else ...[
+                Expanded(
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(12),
+                    itemCount: state.cart.items.length,
+                    separatorBuilder: (_, __) =>
+                        const Divider(height: 16, color: AppColors.border),
+                    itemBuilder: (context, index) {
+                      final item = state.cart.items[index];
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimary,
+                                    fontSize: 13,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  '\u20B1${item.total.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    color: AppColors.primaryGreen,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          _QuantityControls(
+                            quantity: item.quantity,
+                            onIncrement: () {
+                              context
+                                  .read<CartBloc>()
+                                  .add(CartIncrementItem(item.menuId));
+                            },
+                            onDecrement: () {
+                              context
+                                  .read<CartBloc>()
+                                  .add(CartDecrementItem(item.menuId));
+                            },
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
-                // Review button
-                ElevatedButton(
-                  onPressed: _navigateToSummary,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryGreen,
-                    foregroundColor: AppColors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 14,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Row(
+                const Divider(height: 1, color: AppColors.border),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
                     children: [
-                      Text(
-                        'Review',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Subtotal',
+                              style: TextStyle(color: AppColors.textSecondary)),
+                          Text(
+                            '\u20B1${state.subtotal.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.textPrimary),
+                          ),
+                        ],
                       ),
-                      SizedBox(width: 4),
-                      Icon(Icons.arrow_forward_rounded, size: 18),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Tax (12%)',
+                              style: TextStyle(color: AppColors.textSecondary)),
+                          Text(
+                            '\u20B1${state.tax.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.textPrimary),
+                          ),
+                        ],
+                      ),
+                      const Divider(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Total',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            '\u20B1${state.total.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: AppColors.primaryGreen,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _navigateToSummary,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryGreen,
+                            foregroundColor: AppColors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'Review Order',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              SizedBox(width: 4),
+                              Icon(Icons.arrow_forward_rounded, size: 18),
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ],
-            ),
+            ],
           ),
         );
       },
     );
   }
+
 }
 
 class _CategoryChip extends StatelessWidget {
@@ -430,6 +525,9 @@ class _MenuItemCard extends StatelessWidget {
                                   child: Image.network(
                                     menu.dishPicture!,
                                     fit: BoxFit.cover,
+                                    headers: const {
+                                      'ngrok-skip-browser-warning': 'true',
+                                    },
                                     errorBuilder: (_, __, ___) =>
                                         const _PlaceholderIcon(),
                                   ),

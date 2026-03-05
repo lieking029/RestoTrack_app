@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:restotrack_app/core/theme/app_theme.dart';
 import 'package:restotrack_app/features/orders/data/models/order_model.dart';
 
 class KdsOrderCard extends StatelessWidget {
@@ -15,27 +16,40 @@ class KdsOrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildHeader(context),
-            const SizedBox(height: 8),
-            const Divider(height: 1),
-            const SizedBox(height: 8),
-            _buildItems(context),
+            _buildHeader(),
+            const SizedBox(height: 12),
+            _buildItems(),
+            if (order.items.length > 3)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  '+${order.items.length - 3} more items',
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
             if (order.creator != null) ...[
-              const SizedBox(height: 8),
-              _buildServerInfo(context),
+              const SizedBox(height: 12),
+              _buildServerInfo(),
             ],
             if (_showActionButton) ...[
               const SizedBox(height: 12),
-              _buildActionButton(context),
+              _buildActionButton(),
             ],
           ],
         ),
@@ -43,67 +57,123 @@ class KdsOrderCard extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          '#${order.orderNumber}',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.primaryGreen.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: const Icon(
+            Icons.receipt_rounded,
+            color: AppColors.primaryGreen,
+            size: 20,
+          ),
         ),
-        Text(
-          order.timeAgo,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey[600],
-              ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildItems(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: order.items.map((item) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Row(
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Center(
-                  child: Text(
-                    '${item.quantity}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-                  ),
+              Text(
+                '#${order.orderNumber}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: AppColors.textPrimary,
                 ),
               ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  item.name,
-                  style: Theme.of(context).textTheme.bodyMedium,
+              Text(
+                '${order.itemCount} items \u2022 ${order.timeAgo}',
+                style: const TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
                 ),
               ),
             ],
           ),
-        );
-      }).toList(),
+        ),
+        _buildStatusBadge(),
+      ],
     );
   }
 
-  Widget _buildServerInfo(BuildContext context) {
+  Widget _buildStatusBadge() {
+    Color color;
+    switch (order.status) {
+      case OrderStatus.pending:
+        color = Colors.orange;
+      case OrderStatus.confirmed:
+        color = Colors.blue;
+      case OrderStatus.inPreparation:
+        color = AppColors.purple;
+      case OrderStatus.ready:
+        color = AppColors.primaryGreen;
+      case OrderStatus.completed:
+        color = Colors.blue;
+      case OrderStatus.cancelled:
+        color = Colors.red;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        order.status.displayName,
+        style: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildItems() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        children: order.items.take(3).map((item) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Row(
+              children: [
+                Text(
+                  '${item.quantity}x',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primaryGreen,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    item.name,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 15,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildServerInfo() {
     final creator = order.creator!;
     return Row(
       children: [
@@ -111,9 +181,10 @@ class KdsOrderCard extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           '${creator.firstName} ${creator.lastName}',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey[600],
-              ),
+          style: TextStyle(
+            color: Colors.grey[600],
+            fontSize: 13,
+          ),
         ),
       ],
     );
@@ -123,10 +194,10 @@ class KdsOrderCard extends StatelessWidget {
       order.status == OrderStatus.confirmed ||
       order.status == OrderStatus.inPreparation;
 
-  Widget _buildActionButton(BuildContext context) {
+  Widget _buildActionButton() {
     final isConfirmed = order.status == OrderStatus.confirmed;
     final buttonText = isConfirmed ? 'Start Preparing' : 'Mark Ready';
-    final buttonColor = isConfirmed ? Colors.deepOrange : Colors.green;
+    final buttonColor = isConfirmed ? Colors.deepOrange : AppColors.primaryGreen;
 
     return SizedBox(
       width: double.infinity,
@@ -134,8 +205,12 @@ class KdsOrderCard extends StatelessWidget {
         onPressed: isUpdating ? null : onStatusUpdate,
         style: ElevatedButton.styleFrom(
           backgroundColor: buttonColor,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.white,
           padding: const EdgeInsets.symmetric(vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          elevation: 0,
         ),
         child: isUpdating
             ? const SizedBox(
@@ -150,7 +225,7 @@ class KdsOrderCard extends StatelessWidget {
                 buttonText,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                  fontSize: 15,
                 ),
               ),
       ),

@@ -7,48 +7,47 @@ class CashierRepositoryImpl implements CashierRepository {
 
   final ApiClient _apiClient;
 
+  List<dynamic> _extractOrderList(dynamic data) {
+    if (data is List) return data;
+    if (data is Map<String, dynamic>) return data['data'] as List<dynamic>;
+    return [];
+  }
+
   @override
   Future<List<OrderModel>> getPendingOrders() async {
-    final response = await _apiClient.getCashierOrders();
-    final data = response.data as Map<String, dynamic>;
-    final orders = data['data'] as List<dynamic>;
+    final response = await _apiClient.getCashierOrders(status: 0);
+    final orders = _extractOrderList(response.data);
     return orders
         .map((json) => OrderModel.fromJson(json as Map<String, dynamic>))
-        .where((order) => order.status == OrderStatus.pending)
         .toList();
   }
 
   @override
   Future<List<OrderModel>> getAllOrders() async {
     final response = await _apiClient.getCashierOrders();
-    final data = response.data as Map<String, dynamic>;
-    final orders = data['data'] as List<dynamic>;
+    final orders = _extractOrderList(response.data);
     return orders
         .map((json) => OrderModel.fromJson(json as Map<String, dynamic>))
         .toList();
   }
 
   @override
-  Future<OrderModel> processPayment({
+  Future<void> processPayment({
     required String orderId,
     required double amountPaid,
     required String paymentMethod,
   }) async {
-    final response = await _apiClient.processPayment({
+    await _apiClient.processPayment({
       'order_id': orderId,
       'amount_paid': amountPaid,
       'payment_method': paymentMethod,
     });
-
-    final data = response.data as Map<String, dynamic>;
-    return OrderModel.fromJson(data['data'] as Map<String, dynamic>);
   }
 
   @override
   Future<CashierStats> getTodayStats() async {
     final response = await _apiClient.getCashierOrders();
-    final data = response.data as Map<String, dynamic>;
-    final orders = data['data'] as List<dynamic>;
+    final orders = _extractOrderList(response.data);
     final orderModels = orders
         .map((json) => OrderModel.fromJson(json as Map<String, dynamic>))
         .toList();

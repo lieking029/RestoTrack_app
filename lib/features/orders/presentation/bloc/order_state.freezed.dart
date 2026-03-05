@@ -21,6 +21,7 @@ mixin _$OrderState {
   OrderModel? get selectedOrder => throw _privateConstructorUsedError;
   OrderStatus? get filterStatus => throw _privateConstructorUsedError;
   String? get errorMessage => throw _privateConstructorUsedError;
+  String? get successMessage => throw _privateConstructorUsedError;
   bool get isUpdating => throw _privateConstructorUsedError;
 
   /// Create a copy of OrderState
@@ -42,6 +43,7 @@ abstract class $OrderStateCopyWith<$Res> {
       OrderModel? selectedOrder,
       OrderStatus? filterStatus,
       String? errorMessage,
+      String? successMessage,
       bool isUpdating});
 
   $OrderModelCopyWith<$Res>? get selectedOrder;
@@ -67,6 +69,7 @@ class _$OrderStateCopyWithImpl<$Res, $Val extends OrderState>
     Object? selectedOrder = freezed,
     Object? filterStatus = freezed,
     Object? errorMessage = freezed,
+    Object? successMessage = freezed,
     Object? isUpdating = null,
   }) {
     return _then(_value.copyWith(
@@ -89,6 +92,10 @@ class _$OrderStateCopyWithImpl<$Res, $Val extends OrderState>
       errorMessage: freezed == errorMessage
           ? _value.errorMessage
           : errorMessage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      successMessage: freezed == successMessage
+          ? _value.successMessage
+          : successMessage // ignore: cast_nullable_to_non_nullable
               as String?,
       isUpdating: null == isUpdating
           ? _value.isUpdating
@@ -126,6 +133,7 @@ abstract class _$$OrderStateImplCopyWith<$Res>
       OrderModel? selectedOrder,
       OrderStatus? filterStatus,
       String? errorMessage,
+      String? successMessage,
       bool isUpdating});
 
   @override
@@ -150,6 +158,7 @@ class __$$OrderStateImplCopyWithImpl<$Res>
     Object? selectedOrder = freezed,
     Object? filterStatus = freezed,
     Object? errorMessage = freezed,
+    Object? successMessage = freezed,
     Object? isUpdating = null,
   }) {
     return _then(_$OrderStateImpl(
@@ -173,6 +182,10 @@ class __$$OrderStateImplCopyWithImpl<$Res>
           ? _value.errorMessage
           : errorMessage // ignore: cast_nullable_to_non_nullable
               as String?,
+      successMessage: freezed == successMessage
+          ? _value.successMessage
+          : successMessage // ignore: cast_nullable_to_non_nullable
+              as String?,
       isUpdating: null == isUpdating
           ? _value.isUpdating
           : isUpdating // ignore: cast_nullable_to_non_nullable
@@ -190,6 +203,7 @@ class _$OrderStateImpl extends _OrderState {
       this.selectedOrder,
       this.filterStatus,
       this.errorMessage,
+      this.successMessage,
       this.isUpdating = false})
       : _orders = orders,
         super._();
@@ -213,12 +227,14 @@ class _$OrderStateImpl extends _OrderState {
   @override
   final String? errorMessage;
   @override
+  final String? successMessage;
+  @override
   @JsonKey()
   final bool isUpdating;
 
   @override
   String toString() {
-    return 'OrderState(orders: $orders, status: $status, selectedOrder: $selectedOrder, filterStatus: $filterStatus, errorMessage: $errorMessage, isUpdating: $isUpdating)';
+    return 'OrderState(orders: $orders, status: $status, selectedOrder: $selectedOrder, filterStatus: $filterStatus, errorMessage: $errorMessage, successMessage: $successMessage, isUpdating: $isUpdating)';
   }
 
   @override
@@ -234,6 +250,8 @@ class _$OrderStateImpl extends _OrderState {
                 other.filterStatus == filterStatus) &&
             (identical(other.errorMessage, errorMessage) ||
                 other.errorMessage == errorMessage) &&
+            (identical(other.successMessage, successMessage) ||
+                other.successMessage == successMessage) &&
             (identical(other.isUpdating, isUpdating) ||
                 other.isUpdating == isUpdating));
   }
@@ -246,6 +264,7 @@ class _$OrderStateImpl extends _OrderState {
       selectedOrder,
       filterStatus,
       errorMessage,
+      successMessage,
       isUpdating);
 
   /// Create a copy of OrderState
@@ -264,6 +283,7 @@ abstract class _OrderState extends OrderState {
       final OrderModel? selectedOrder,
       final OrderStatus? filterStatus,
       final String? errorMessage,
+      final String? successMessage,
       final bool isUpdating}) = _$OrderStateImpl;
   const _OrderState._() : super._();
 
@@ -277,6 +297,8 @@ abstract class _OrderState extends OrderState {
   OrderStatus? get filterStatus;
   @override
   String? get errorMessage;
+  @override
+  String? get successMessage;
   @override
   bool get isUpdating;
 

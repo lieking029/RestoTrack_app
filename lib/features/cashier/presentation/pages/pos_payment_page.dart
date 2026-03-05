@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:printing/printing.dart';
 import 'package:restotrack_app/core/theme/app_theme.dart';
+import 'package:restotrack_app/features/cashier/data/services/receipt_pdf_service.dart';
 import 'package:restotrack_app/features/cashier/presentation/bloc/cashier_bloc.dart';
 import 'package:restotrack_app/features/cashier/presentation/bloc/cashier_event.dart';
 import 'package:restotrack_app/features/cashier/presentation/bloc/cashier_state.dart';
@@ -39,7 +41,7 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
   void _calculateChange() => setState(() {});
 
   void _onQuickCash(double amount) {
-    _cashController.text = amount.toStringAsFixed(0);
+    _cashController.text = amount.toStringAsFixed(2);
     _cashFocusNode.unfocus();
     _calculateChange();
   }
@@ -69,10 +71,27 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
           Navigator.of(dialogContext).pop();
           Navigator.of(context).pop();
         },
-        onPrintReceipt: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Printing receipt...')),
-          );
+        onPrintReceipt: () async {
+          try {
+            final pdfBytes = await ReceiptPdfService.generateReceipt(
+              order: widget.order,
+              cashReceived: _cashReceived,
+              change: _change,
+            );
+            await Printing.layoutPdf(
+              onLayout: (_) => pdfBytes,
+              name: 'Receipt_${widget.order.orderNumber}',
+            );
+          } catch (e) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Failed to generate receipt'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
         },
       ),
     );
@@ -107,11 +126,12 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
-        body: Column(
+        body: Row(
           children: [
             Expanded(
+              flex: 55,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -124,7 +144,10 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
                 ),
               ),
             ),
-            _buildPaymentSection(),
+            Expanded(
+              flex: 45,
+              child: _buildPaymentSection(),
+            ),
           ],
         ),
       ),
@@ -314,24 +337,15 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
             state.processingOrderId == widget.order.id;
 
         return Container(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 16,
-            bottom: MediaQuery.of(context).padding.bottom + 16,
-          ),
-          decoration: BoxDecoration(
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(
             color: AppColors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, -5),
-              ),
-            ],
+            border: Border(
+              left: BorderSide(color: AppColors.border),
+            ),
           ),
-          child: Column(
+          child: SingleChildScrollView(
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               // Amount Due
@@ -521,6 +535,7 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
                 ),
               ),
             ],
+          ),
           ),
         );
       },

@@ -19,6 +19,7 @@ mixin _$KdsState {
   List<OrderModel> get orders => throw _privateConstructorUsedError;
   KdsStateStatus get status => throw _privateConstructorUsedError;
   String? get errorMessage => throw _privateConstructorUsedError;
+  String? get successMessage => throw _privateConstructorUsedError;
   bool get isUpdating => throw _privateConstructorUsedError;
   String? get updatingOrderId => throw _privateConstructorUsedError;
 
@@ -38,6 +39,7 @@ abstract class $KdsStateCopyWith<$Res> {
       {List<OrderModel> orders,
       KdsStateStatus status,
       String? errorMessage,
+      String? successMessage,
       bool isUpdating,
       String? updatingOrderId});
 }
@@ -60,6 +62,7 @@ class _$KdsStateCopyWithImpl<$Res, $Val extends KdsState>
     Object? orders = null,
     Object? status = null,
     Object? errorMessage = freezed,
+    Object? successMessage = freezed,
     Object? isUpdating = null,
     Object? updatingOrderId = freezed,
   }) {
@@ -75,6 +78,10 @@ class _$KdsStateCopyWithImpl<$Res, $Val extends KdsState>
       errorMessage: freezed == errorMessage
           ? _value.errorMessage
           : errorMessage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      successMessage: freezed == successMessage
+          ? _value.successMessage
+          : successMessage // ignore: cast_nullable_to_non_nullable
               as String?,
       isUpdating: null == isUpdating
           ? _value.isUpdating
@@ -100,6 +107,7 @@ abstract class _$$KdsStateImplCopyWith<$Res>
       {List<OrderModel> orders,
       KdsStateStatus status,
       String? errorMessage,
+      String? successMessage,
       bool isUpdating,
       String? updatingOrderId});
 }
@@ -120,6 +128,7 @@ class __$$KdsStateImplCopyWithImpl<$Res>
     Object? orders = null,
     Object? status = null,
     Object? errorMessage = freezed,
+    Object? successMessage = freezed,
     Object? isUpdating = null,
     Object? updatingOrderId = freezed,
   }) {
@@ -135,6 +144,10 @@ class __$$KdsStateImplCopyWithImpl<$Res>
       errorMessage: freezed == errorMessage
           ? _value.errorMessage
           : errorMessage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      successMessage: freezed == successMessage
+          ? _value.successMessage
+          : successMessage // ignore: cast_nullable_to_non_nullable
               as String?,
       isUpdating: null == isUpdating
           ? _value.isUpdating
@@ -155,6 +168,7 @@ class _$KdsStateImpl extends _KdsState {
       {final List<OrderModel> orders = const [],
       this.status = KdsStateStatus.initial,
       this.errorMessage,
+      this.successMessage,
       this.isUpdating = false,
       this.updatingOrderId})
       : _orders = orders,
@@ -175,6 +189,8 @@ class _$KdsStateImpl extends _KdsState {
   @override
   final String? errorMessage;
   @override
+  final String? successMessage;
+  @override
   @JsonKey()
   final bool isUpdating;
   @override
@@ -182,7 +198,7 @@ class _$KdsStateImpl extends _KdsState {
 
   @override
   String toString() {
-    return 'KdsState(orders: $orders, status: $status, errorMessage: $errorMessage, isUpdating: $isUpdating, updatingOrderId: $updatingOrderId)';
+    return 'KdsState(orders: $orders, status: $status, errorMessage: $errorMessage, successMessage: $successMessage, isUpdating: $isUpdating, updatingOrderId: $updatingOrderId)';
   }
 
   @override
@@ -194,6 +210,8 @@ class _$KdsStateImpl extends _KdsState {
             (identical(other.status, status) || other.status == status) &&
             (identical(other.errorMessage, errorMessage) ||
                 other.errorMessage == errorMessage) &&
+            (identical(other.successMessage, successMessage) ||
+                other.successMessage == successMessage) &&
             (identical(other.isUpdating, isUpdating) ||
                 other.isUpdating == isUpdating) &&
             (identical(other.updatingOrderId, updatingOrderId) ||
@@ -206,6 +224,7 @@ class _$KdsStateImpl extends _KdsState {
       const DeepCollectionEquality().hash(_orders),
       status,
       errorMessage,
+      successMessage,
       isUpdating,
       updatingOrderId);
 
@@ -223,6 +242,7 @@ abstract class _KdsState extends KdsState {
       {final List<OrderModel> orders,
       final KdsStateStatus status,
       final String? errorMessage,
+      final String? successMessage,
       final bool isUpdating,
       final String? updatingOrderId}) = _$KdsStateImpl;
   const _KdsState._() : super._();
@@ -233,6 +253,8 @@ abstract class _KdsState extends KdsState {
   KdsStateStatus get status;
   @override
   String? get errorMessage;
+  @override
+  String? get successMessage;
   @override
   bool get isUpdating;
   @override

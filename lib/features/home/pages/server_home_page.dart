@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -25,18 +27,28 @@ class ServerHomePage extends StatefulWidget {
 class _ServerHomePageState extends State<ServerHomePage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _loadOrders();
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (_) => _refreshOrders(),
+    );
   }
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     _tabController.dispose();
     super.dispose();
+  }
+
+  void _refreshOrders() {
+    context.read<OrderBloc>().add(const OrderRefreshOrders());
   }
 
   void _loadOrders() {
@@ -137,7 +149,7 @@ class _ServerHomePageState extends State<ServerHomePage>
     return BlocBuilder<OrderBloc, OrderState>(
       builder: (context, state) {
         return Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(24),
           child: Row(
             children: [
               Expanded(
@@ -213,6 +225,15 @@ class _ServerHomePageState extends State<ServerHomePage>
               backgroundColor: Colors.red,
             ),
           );
+        }
+        if (state.successMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.successMessage!),
+              backgroundColor: AppColors.primaryGreen,
+            ),
+          );
+          context.read<OrderBloc>().add(const OrderClearError());
         }
       },
       builder: (context, state) {
@@ -325,8 +346,14 @@ class _OrderListView extends StatelessWidget {
       onRefresh: () async {
         context.read<OrderBloc>().add(const OrderRefreshOrders());
       },
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
+      child: GridView.builder(
+        padding: const EdgeInsets.all(24),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 1.6,
+        ),
         itemCount: orders.length,
         itemBuilder: (context, index) {
           final order = orders[index];

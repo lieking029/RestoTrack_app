@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:restotrack_app/core/theme/app_theme.dart';
 import 'package:restotrack_app/features/kds/presentation/bloc/kds_bloc.dart';
 import 'package:restotrack_app/features/kds/presentation/bloc/kds_event.dart';
 import 'package:restotrack_app/features/kds/presentation/bloc/kds_state.dart';
@@ -13,21 +16,44 @@ class KdsPage extends StatefulWidget {
   State<KdsPage> createState() => _KdsPageState();
 }
 
-class _KdsPageState extends State<KdsPage> {
+class _KdsPageState extends State<KdsPage>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  Timer? _refreshTimer;
+
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 3, vsync: this);
     context.read<KdsBloc>().add(const KdsLoadOrders());
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 10),
+      (_) => context.read<KdsBloc>().add(const KdsRefreshOrders()),
+    );
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Kitchen Display'),
+        backgroundColor: AppColors.primaryGreen,
+        foregroundColor: AppColors.white,
+        centerTitle: true,
+        title: const Text(
+          'Kitchen Display',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh_rounded),
             onPressed: () {
               context.read<KdsBloc>().add(const KdsRefreshOrders());
             },
@@ -51,120 +77,62 @@ class _KdsPageState extends State<KdsPage> {
               ),
             );
           }
+          if (state.successMessage != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.successMessage!),
+                backgroundColor: AppColors.primaryGreen,
+              ),
+            );
+            context.read<KdsBloc>().add(const KdsClearError());
+          }
         },
         builder: (context, state) {
           if (state.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (state.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.restaurant_menu, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
-                  Text(
-                    'No orders in the kitchen',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              context.read<KdsBloc>().add(const KdsRefreshOrders());
-            },
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                if (constraints.maxWidth >= 900) {
-                  return _buildThreeColumnLayout(context, state);
-                } else {
-                  return _buildScrollableLayout(context, state);
-                }
-              },
-            ),
+          return Column(
+            children: [
+              _buildStatsRow(state),
+              _buildTabBar(),
+              Expanded(child: _buildTabContent(state)),
+            ],
           );
         },
       ),
     );
   }
 
-  Widget _buildThreeColumnLayout(BuildContext context, KdsState state) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: _buildColumn(
-            context: context,
-            title: 'PAID',
-            color: Colors.blue,
-            orders: state.confirmedOrders,
-            state: state,
-          ),
-        ),
-        const VerticalDivider(width: 1),
-        Expanded(
-          child: _buildColumn(
-            context: context,
-            title: 'IN PREPARATION',
-            color: Colors.purple,
-            orders: state.inPreparationOrders,
-            state: state,
-          ),
-        ),
-        const VerticalDivider(width: 1),
-        Expanded(
-          child: _buildColumn(
-            context: context,
-            title: 'READY',
-            color: Colors.green,
-            orders: state.readyOrders,
-            state: state,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildScrollableLayout(BuildContext context, KdsState state) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
+  Widget _buildStatsRow(KdsState state) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 320,
-            child: _buildColumn(
-              context: context,
-              title: 'PAID',
-              color: Colors.blue,
-              orders: state.confirmedOrders,
-              state: state,
+          Expanded(
+            child: _StatCard(
+              icon: Icons.payment_rounded,
+              iconColor: Colors.blue,
+              label: 'Paid',
+              value: '${state.confirmedOrders.length}',
             ),
           ),
-          const VerticalDivider(width: 1),
-          SizedBox(
-            width: 320,
-            child: _buildColumn(
-              context: context,
-              title: 'IN PREPARATION',
-              color: Colors.purple,
-              orders: state.inPreparationOrders,
-              state: state,
+          const SizedBox(width: 12),
+          Expanded(
+            child: _StatCard(
+              icon: Icons.restaurant_rounded,
+              iconColor: AppColors.purple,
+              label: 'Preparing',
+              value: '${state.inPreparationOrders.length}',
             ),
           ),
-          const VerticalDivider(width: 1),
-          SizedBox(
-            width: 320,
-            child: _buildColumn(
-              context: context,
-              title: 'READY',
-              color: Colors.green,
-              orders: state.readyOrders,
-              state: state,
+          const SizedBox(width: 12),
+          Expanded(
+            child: _StatCard(
+              icon: Icons.check_circle_rounded,
+              iconColor: AppColors.primaryGreen,
+              label: 'Ready',
+              value: '${state.readyOrders.length}',
             ),
           ),
         ],
@@ -172,69 +140,71 @@ class _KdsPageState extends State<KdsPage> {
     );
   }
 
-  Widget _buildColumn({
-    required BuildContext context,
-    required String title,
-    required Color color,
-    required List<OrderModel> orders,
-    required KdsState state,
-  }) {
-    return Column(
-      children: [
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          color: color,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '${orders.length}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
+  Widget _buildTabBar() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: TabBar(
+        controller: _tabController,
+        indicatorSize: TabBarIndicatorSize.tab,
+        dividerColor: Colors.transparent,
+        indicator: BoxDecoration(
+          color: AppColors.primaryGreen,
+          borderRadius: BorderRadius.circular(10),
         ),
-        Expanded(
-          child: orders.isEmpty
-              ? Center(
-                  child: Text(
-                    'No orders',
-                    style: TextStyle(color: Colors.grey[400]),
-                  ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: orders.length,
-                  itemBuilder: (context, index) {
-                    final order = orders[index];
-                    final isUpdating = state.isUpdating &&
-                        state.updatingOrderId == order.id;
-                    return KdsOrderCard(
-                      order: order,
-                      isUpdating: isUpdating,
-                      onStatusUpdate: _getStatusUpdateHandler(order),
-                    );
-                  },
-                ),
+        labelColor: AppColors.white,
+        unselectedLabelColor: AppColors.textSecondary,
+        labelStyle:
+            const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+        unselectedLabelStyle:
+            const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+        padding: const EdgeInsets.all(4),
+        tabs: const [
+          Tab(text: 'Paid'),
+          Tab(text: 'Preparing'),
+          Tab(text: 'Ready'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabContent(KdsState state) {
+    return TabBarView(
+      controller: _tabController,
+      children: [
+        _OrderListView(
+          orders: state.confirmedOrders,
+          state: state,
+          emptyMessage: 'No paid orders',
+          emptyIcon: Icons.payment_outlined,
+          onRefresh: () async {
+            context.read<KdsBloc>().add(const KdsRefreshOrders());
+          },
+          onStatusUpdate: _getStatusUpdateHandler,
+        ),
+        _OrderListView(
+          orders: state.inPreparationOrders,
+          state: state,
+          emptyMessage: 'No orders in preparation',
+          emptyIcon: Icons.restaurant_outlined,
+          onRefresh: () async {
+            context.read<KdsBloc>().add(const KdsRefreshOrders());
+          },
+          onStatusUpdate: _getStatusUpdateHandler,
+        ),
+        _OrderListView(
+          orders: state.readyOrders,
+          state: state,
+          emptyMessage: 'No orders ready',
+          emptyIcon: Icons.check_circle_outline,
+          onRefresh: () async {
+            context.read<KdsBloc>().add(const KdsRefreshOrders());
+          },
+          onStatusUpdate: _getStatusUpdateHandler,
         ),
       ],
     );
@@ -260,5 +230,113 @@ class _KdsPageState extends State<KdsPage> {
             ),
           );
     };
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  const _StatCard({
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: iconColor, size: 24),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OrderListView extends StatelessWidget {
+  const _OrderListView({
+    required this.orders,
+    required this.state,
+    required this.emptyMessage,
+    required this.emptyIcon,
+    required this.onRefresh,
+    required this.onStatusUpdate,
+  });
+
+  final List<OrderModel> orders;
+  final KdsState state;
+  final String emptyMessage;
+  final IconData emptyIcon;
+  final Future<void> Function() onRefresh;
+  final VoidCallback? Function(OrderModel order) onStatusUpdate;
+
+  @override
+  Widget build(BuildContext context) {
+    if (orders.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(emptyIcon, size: 64, color: Colors.grey[400]),
+            const SizedBox(height: 16),
+            Text(
+              emptyMessage,
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: GridView.builder(
+        padding: const EdgeInsets.all(24),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 0.85,
+        ),
+        itemCount: orders.length,
+        itemBuilder: (context, index) {
+          final order = orders[index];
+          final isUpdating =
+              state.isUpdating && state.updatingOrderId == order.id;
+          return KdsOrderCard(
+            order: order,
+            isUpdating: isUpdating,
+            onStatusUpdate: onStatusUpdate(order),
+          );
+        },
+      ),
+    );
   }
 }

@@ -51,7 +51,9 @@ class _LoginPageState extends State<LoginPage> {
         },
         child: SafeArea(
           child: Center(
-            child: SingleChildScrollView(
+            child: SizedBox(
+              width: 480,
+              child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Form(
                 key: _formKey,
@@ -161,6 +163,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
             ),
+          ),
           ),
         ),
       ),

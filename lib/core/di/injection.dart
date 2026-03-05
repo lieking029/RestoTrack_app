@@ -15,6 +15,9 @@ import 'package:restotrack_app/features/orders/data/repositories/order_repositor
 import 'package:restotrack_app/features/orders/data/repositories/order_repository_impl.dart';
 import 'package:restotrack_app/features/orders/presentation/bloc/cart_bloc.dart';
 import 'package:restotrack_app/features/orders/presentation/bloc/order_bloc.dart';
+import 'package:restotrack_app/features/sales_report/data/repositories/sales_report_repository.dart';
+import 'package:restotrack_app/features/sales_report/data/repositories/sales_report_repository_impl.dart';
+import 'package:restotrack_app/features/sales_report/presentation/bloc/sales_report_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -65,5 +68,15 @@ Future<void> initDependencies() async {
 
   ..registerFactory<CashierBloc>(
         () => CashierBloc(cashierRepository: sl<CashierRepository>()),
+  )
+
+  ..registerLazySingleton<SalesReportRepository>(
+        () => SalesReportRepositoryImpl(apiClient: sl<ApiClient>()),
+  )
+
+  ..registerFactory<SalesReportBloc>(
+        () => SalesReportBloc(
+          salesReportRepository: sl<SalesReportRepository>(),
+        ),
   );
 }

@@ -12,9 +12,9 @@ _$OrderItemModelImpl _$$OrderItemModelImplFromJson(Map<String, dynamic> json) =>
       orderId: json['orderId'] as String,
       menuId: json['menuId'] as String,
       name: json['name'] as String,
-      unitPrice: (json['unitPrice'] as num).toDouble(),
+      unitPrice: _itemToDouble(json['unitPrice']),
       quantity: (json['quantity'] as num).toInt(),
-      total: (json['total'] as num).toDouble(),
+      total: _itemToDouble(json['total']),
       createdAt: json['createdAt'] == null
           ? null
           : DateTime.parse(json['createdAt'] as String),

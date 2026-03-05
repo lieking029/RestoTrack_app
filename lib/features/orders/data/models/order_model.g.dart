@@ -13,9 +13,9 @@ _$OrderModelImpl _$$OrderModelImplFromJson(Map<String, dynamic> json) =>
       processedBy: json['processedBy'] as String?,
       status: $enumDecodeNullable(_$OrderStatusEnumMap, json['status']) ??
           OrderStatus.pending,
-      subtotal: (json['subtotal'] as num?)?.toDouble() ?? 0,
-      tax: (json['tax'] as num?)?.toDouble() ?? 0,
-      total: (json['total'] as num?)?.toDouble() ?? 0,
+      subtotal: json['subtotal'] == null ? 0 : _toDouble(json['subtotal']),
+      tax: json['tax'] == null ? 0 : _toDouble(json['tax']),
+      total: json['total'] == null ? 0 : _toDouble(json['total']),
       createdAt: json['createdAt'] == null
           ? null
           : DateTime.parse(json['createdAt'] as String),

@@ -55,7 +55,7 @@ class AuthRepository {
     // Try to verify with server, but fall back to saved user if API fails
     try {
       final response = await _apiClient.me();
-      final userJson = response.data['user'] as Map<String, dynamic>;
+      final userJson = response.data['data'] as Map<String, dynamic>;
       final user = UserModel.fromJson(userJson);
       // Update saved user data
       await _apiClient.setUser(jsonEncode(userJson));

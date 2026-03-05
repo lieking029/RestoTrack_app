@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:restotrack_app/core/di/injection.dart';
 import 'package:restotrack_app/core/theme/app_theme.dart';
 import 'package:restotrack_app/features/auth/data/models/user_model.dart';
 import 'package:restotrack_app/features/auth/data/presentation/bloc/auth_bloc.dart';
@@ -9,6 +10,8 @@ import 'package:restotrack_app/features/cashier/presentation/bloc/cashier_event.
 import 'package:restotrack_app/features/cashier/presentation/bloc/cashier_state.dart';
 import 'package:restotrack_app/features/cashier/presentation/pages/pos_order_list_page.dart';
 import 'package:restotrack_app/features/orders/data/models/order_model.dart';
+import 'package:restotrack_app/features/sales_report/presentation/bloc/sales_report_bloc.dart';
+import 'package:restotrack_app/features/sales_report/presentation/pages/sales_report_page.dart';
 
 class CashierHomePage extends StatefulWidget {
   const CashierHomePage({super.key, required this.user});
@@ -42,7 +45,7 @@ class _CashierHomePageState extends State<CashierHomePage> {
               children: [
                 _buildHeader(context),
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -50,7 +53,13 @@ class _CashierHomePageState extends State<CashierHomePage> {
                       const SizedBox(height: 16),
                       _buildTotalSalesCard(),
                       const SizedBox(height: 16),
-                      _buildGoToPOSButton(context),
+                      Row(
+                        children: [
+                          Expanded(child: _buildGoToPOSButton(context)),
+                          const SizedBox(width: 16),
+                          Expanded(child: _buildSalesReportButton(context)),
+                        ],
+                      ),
                       const SizedBox(height: 24),
                       _buildRecentOrdersSection(),
                     ],
@@ -202,9 +211,7 @@ class _CashierHomePageState extends State<CashierHomePage> {
   }
 
   Widget _buildGoToPOSButton(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
+    return ElevatedButton.icon(
         onPressed: () {
           final cashierBloc = context.read<CashierBloc>();
           Navigator.of(context).push(
@@ -234,7 +241,39 @@ class _CashierHomePageState extends State<CashierHomePage> {
             fontWeight: FontWeight.w600,
           ),
         ),
-      ),
+    );
+  }
+
+  Widget _buildSalesReportButton(BuildContext context) {
+    return ElevatedButton.icon(
+        onPressed: () {
+          Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (_) => BlocProvider(
+                create: (_) => sl<SalesReportBloc>(),
+                child: const SalesReportPage(),
+              ),
+            ),
+          );
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.white,
+          foregroundColor: AppColors.textPrimary,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: AppColors.border),
+          ),
+          elevation: 0,
+        ),
+        icon: const Icon(Icons.bar_chart_rounded),
+        label: const Text(
+          'Sales Report',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
     );
   }
 
@@ -297,7 +336,20 @@ class _CashierHomePageState extends State<CashierHomePage> {
                 ),
               )
             else
-              ...recentOrders.map((order) => _OrderCard(order: order)),
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 4.0,
+                ),
+                itemCount: recentOrders.length,
+                itemBuilder: (context, index) {
+                  return _OrderCard(order: recentOrders[index]);
+                },
+              ),
           ],
         );
       },

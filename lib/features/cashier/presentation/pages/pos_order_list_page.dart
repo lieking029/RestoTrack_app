@@ -201,8 +201,14 @@ class _PosOrderListPageState extends State<PosOrderListPage>
       onRefresh: () async {
         context.read<CashierBloc>().add(const CashierRefreshOrders());
       },
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
+      child: GridView.builder(
+        padding: const EdgeInsets.all(24),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 2.2,
+        ),
         itemCount: orders.length,
         itemBuilder: (context, index) {
           final order = orders[index];
