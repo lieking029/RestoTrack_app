@@ -119,6 +119,12 @@ class ApiClient {
   Future<Response<dynamic>> processPayment(Map<String, dynamic> data) =>
       _dio.post(ApiConstants.payments, data: data);
 
+  Future<Response<dynamic>> createOnlinePayment(Map<String, dynamic> data) =>
+      _dio.post(ApiConstants.onlinePayment, data: data);
+
+  Future<Response<dynamic>> getPaymentStatus(String orderId) =>
+      _dio.get('/cashier/orders/$orderId/payment-status');
+
   Future<Response<dynamic>> getTransactions() =>
       _dio.get(ApiConstants.transactions);
 

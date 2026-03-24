@@ -21,6 +21,10 @@ class CashierState with _$CashierState {
     String? processingOrderId,
     CashierStats? stats,
     OrderModel? lastCompletedOrder,
+    String? checkoutUrl,
+    String? checkoutSessionId,
+    @Default(false) bool isPollingPayment,
+    String? onlinePaymentOrderId,
   }) = _CashierState;
 
   const CashierState._();

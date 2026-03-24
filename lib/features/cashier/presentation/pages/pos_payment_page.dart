@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:printing/printing.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:restotrack_app/core/theme/app_theme.dart';
 import 'package:restotrack_app/features/cashier/data/services/receipt_pdf_service.dart';
 import 'package:restotrack_app/features/cashier/presentation/bloc/cashier_bloc.dart';
@@ -21,6 +22,7 @@ class PosPaymentPage extends StatefulWidget {
 class _PosPaymentPageState extends State<PosPaymentPage> {
   final _cashController = TextEditingController();
   final _cashFocusNode = FocusNode();
+  int _paymentMethodIndex = 0; // 0 = Cash, 1 = Online Pay
 
   @override
   void dispose() {
@@ -58,15 +60,16 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
         );
   }
 
-  void _showSuccessDialog() {
+  void _showSuccessDialog({String paymentMethod = 'cash'}) {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => _PaymentSuccessDialog(
         orderNumber: widget.order.orderNumber,
         total: widget.order.total,
-        cashReceived: _cashReceived,
-        change: _change,
+        cashReceived: paymentMethod == 'cash' ? _cashReceived : null,
+        change: paymentMethod == 'cash' ? _change : null,
+        paymentMethod: paymentMethod,
         onDone: () {
           Navigator.of(dialogContext).pop();
           Navigator.of(context).pop();
@@ -75,8 +78,8 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
           try {
             final pdfBytes = await ReceiptPdfService.generateReceipt(
               order: widget.order,
-              cashReceived: _cashReceived,
-              change: _change,
+              cashReceived: paymentMethod == 'cash' ? _cashReceived : widget.order.total,
+              change: paymentMethod == 'cash' ? _change : 0,
             );
             await Printing.layoutPdf(
               onLayout: (_) => pdfBytes,
@@ -102,7 +105,9 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
     return BlocListener<CashierBloc, CashierState>(
       listener: (context, state) {
         if (state.lastCompletedOrder?.id == widget.order.id) {
-          _showSuccessDialog();
+          _showSuccessDialog(
+            paymentMethod: _paymentMethodIndex == 1 ? 'online' : 'cash',
+          );
         }
         if (state.errorMessage != null) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -379,166 +384,479 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
               ),
               const SizedBox(height: 16),
 
-              // Quick Cash Buttons
-              Row(
-                children: [
-                  _QuickCashButton(
-                    amount: _roundUpTo(widget.order.total, 100),
-                    onTap: _onQuickCash,
-                  ),
-                  const SizedBox(width: 8),
-                  _QuickCashButton(
-                    amount: _roundUpTo(widget.order.total, 500),
-                    onTap: _onQuickCash,
-                  ),
-                  const SizedBox(width: 8),
-                  _QuickCashButton(
-                    amount: _roundUpTo(widget.order.total, 1000),
-                    onTap: _onQuickCash,
-                  ),
-                  const SizedBox(width: 8),
-                  _QuickCashButton(
-                    label: 'Exact',
-                    amount: widget.order.total,
-                    onTap: _onQuickCash,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // Cash Input
-              TextField(
-                controller: _cashController,
-                focusNode: _cashFocusNode,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
-                ],
-                onChanged: (_) => _calculateChange(),
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+              // Payment Method Toggle
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                textAlign: TextAlign.center,
-                decoration: InputDecoration(
-                  hintText: '0.00',
-                  hintStyle: TextStyle(
-                    color: AppColors.textSecondary.withValues(alpha: 0.5),
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  prefixText: '\u20B1 ',
-                  prefixStyle: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                  labelText: 'Cash Received',
-                  labelStyle: const TextStyle(
-                    color: AppColors.textSecondary,
-                  ),
-                  filled: true,
-                  fillColor: AppColors.background,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: AppColors.primaryGreen,
-                      width: 2,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // Change Display
-              if (_cashReceived > 0)
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: _canProcess
-                        ? Colors.green.withValues(alpha: 0.1)
-                        : Colors.red.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        _canProcess
-                            ? Icons.check_circle_rounded
-                            : Icons.error_rounded,
-                        color: _canProcess ? Colors.green : Colors.red,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        _canProcess
-                            ? 'Change: \u20B1${_change.toStringAsFixed(2)}'
-                            : 'Insufficient: \u20B1${_change.abs().toStringAsFixed(2)} more needed',
-                        style: TextStyle(
-                          color: _canProcess ? Colors.green : Colors.red,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              const SizedBox(height: 16),
-
-              // Confirm Button
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed:
-                      _canProcess && !isProcessing ? _processPayment : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryGreen,
-                    foregroundColor: AppColors.white,
-                    disabledBackgroundColor: AppColors.border,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: isProcessing
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: AppColors.white,
-                            strokeWidth: 2.5,
+                padding: const EdgeInsets.all(4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _paymentMethodIndex = 0),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: _paymentMethodIndex == 0
+                                ? AppColors.white
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: _paymentMethodIndex == 0
+                                ? [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.05),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 1),
+                                    ),
+                                  ]
+                                : null,
                           ),
-                        )
-                      : const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.check_circle_rounded, size: 22),
-                            SizedBox(width: 8),
-                            Text(
-                              'Confirm Payment',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.payments_rounded,
+                                size: 18,
+                                color: _paymentMethodIndex == 0
+                                    ? AppColors.primaryGreen
+                                    : AppColors.textSecondary,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 6),
+                              Text(
+                                'Cash',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: _paymentMethodIndex == 0
+                                      ? AppColors.primaryGreen
+                                      : AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
+                      ),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _paymentMethodIndex = 1),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: _paymentMethodIndex == 1
+                                ? AppColors.white
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: _paymentMethodIndex == 1
+                                ? [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.05),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 1),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.qr_code_rounded,
+                                size: 18,
+                                color: _paymentMethodIndex == 1
+                                    ? AppColors.primaryGreen
+                                    : AppColors.textSecondary,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Online Pay',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: _paymentMethodIndex == 1
+                                      ? AppColors.primaryGreen
+                                      : AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
+              const SizedBox(height: 16),
+
+              // Payment Content
+              if (_paymentMethodIndex == 0)
+                _buildCashPaymentContent(state, isProcessing)
+              else
+                _buildOnlinePaymentContent(state),
             ],
           ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildCashPaymentContent(CashierState state, bool isProcessing) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Quick Cash Buttons
+        Row(
+          children: [
+            _QuickCashButton(
+              amount: _roundUpTo(widget.order.total, 100),
+              onTap: _onQuickCash,
+            ),
+            const SizedBox(width: 8),
+            _QuickCashButton(
+              amount: _roundUpTo(widget.order.total, 500),
+              onTap: _onQuickCash,
+            ),
+            const SizedBox(width: 8),
+            _QuickCashButton(
+              amount: _roundUpTo(widget.order.total, 1000),
+              onTap: _onQuickCash,
+            ),
+            const SizedBox(width: 8),
+            _QuickCashButton(
+              label: 'Exact',
+              amount: widget.order.total,
+              onTap: _onQuickCash,
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // Cash Input
+        TextField(
+          controller: _cashController,
+          focusNode: _cashFocusNode,
+          keyboardType:
+              const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[\d.]')),
+          ],
+          onChanged: (_) => _calculateChange(),
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+          textAlign: TextAlign.center,
+          decoration: InputDecoration(
+            hintText: '0.00',
+            hintStyle: TextStyle(
+              color: AppColors.textSecondary.withValues(alpha: 0.5),
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+            prefixText: '\u20B1 ',
+            prefixStyle: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+            labelText: 'Cash Received',
+            labelStyle: const TextStyle(
+              color: AppColors.textSecondary,
+            ),
+            filled: true,
+            fillColor: AppColors.background,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                color: AppColors.primaryGreen,
+                width: 2,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Change Display
+        if (_cashReceived > 0)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: _canProcess
+                  ? Colors.green.withValues(alpha: 0.1)
+                  : Colors.red.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  _canProcess
+                      ? Icons.check_circle_rounded
+                      : Icons.error_rounded,
+                  color: _canProcess ? Colors.green : Colors.red,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  _canProcess
+                      ? 'Change: \u20B1${_change.toStringAsFixed(2)}'
+                      : 'Insufficient: \u20B1${_change.abs().toStringAsFixed(2)} more needed',
+                  style: TextStyle(
+                    color: _canProcess ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        const SizedBox(height: 16),
+
+        // Confirm Button
+        SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton(
+            onPressed:
+                _canProcess && !isProcessing ? _processPayment : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryGreen,
+              foregroundColor: AppColors.white,
+              disabledBackgroundColor: AppColors.border,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 0,
+            ),
+            child: isProcessing
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: AppColors.white,
+                      strokeWidth: 2.5,
+                    ),
+                  )
+                : const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.check_circle_rounded, size: 22),
+                      SizedBox(width: 8),
+                      Text(
+                        'Confirm Payment',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOnlinePaymentContent(CashierState state) {
+    final isCreating = state.isProcessingPayment &&
+        state.onlinePaymentOrderId == widget.order.id;
+    final hasCheckoutUrl = state.checkoutUrl != null &&
+        state.onlinePaymentOrderId == widget.order.id;
+    final isPolling = state.isPollingPayment &&
+        state.onlinePaymentOrderId == widget.order.id;
+
+    // QR code displayed — waiting for payment
+    if (hasCheckoutUrl) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Column(
+              children: [
+                QrImageView(
+                  data: state.checkoutUrl!,
+                  version: QrVersions.auto,
+                  size: 220,
+                  eyeStyle: const QrEyeStyle(
+                    eyeShape: QrEyeShape.square,
+                    color: AppColors.textPrimary,
+                  ),
+                  dataModuleStyle: const QrDataModuleStyle(
+                    dataModuleShape: QrDataModuleShape.square,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Scan to pay with GCash / Maya / Card',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          if (isPolling)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    'Waiting for payment...',
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 16),
+
+          // Cancel Button
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: OutlinedButton(
+              onPressed: () {
+                context
+                    .read<CashierBloc>()
+                    .add(const CashierCancelOnlinePayment());
+              },
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: AppColors.border),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // Initial state — show generate button
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppColors.background,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                Icons.qr_code_2_rounded,
+                size: 64,
+                color: AppColors.textSecondary.withValues(alpha: 0.4),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'Generate a QR code for the customer to scan and pay online',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton(
+            onPressed: isCreating
+                ? null
+                : () {
+                    context.read<CashierBloc>().add(
+                          CashierCreateOnlinePayment(
+                            orderId: widget.order.id,
+                          ),
+                        );
+                  },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryGreen,
+              foregroundColor: AppColors.white,
+              disabledBackgroundColor: AppColors.border,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 0,
+            ),
+            child: isCreating
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: AppColors.white,
+                      strokeWidth: 2.5,
+                    ),
+                  )
+                : const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.qr_code_rounded, size: 22),
+                      SizedBox(width: 8),
+                      Text(
+                        'Generate QR Code',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -627,16 +945,18 @@ class _PaymentSuccessDialog extends StatelessWidget {
   const _PaymentSuccessDialog({
     required this.orderNumber,
     required this.total,
-    required this.cashReceived,
-    required this.change,
+    this.cashReceived,
+    this.change,
+    this.paymentMethod = 'cash',
     required this.onDone,
     required this.onPrintReceipt,
   });
 
   final String orderNumber;
   final double total;
-  final double cashReceived;
-  final double change;
+  final double? cashReceived;
+  final double? change;
+  final String paymentMethod;
   final VoidCallback onDone;
   final VoidCallback onPrintReceipt;
 
@@ -691,17 +1011,26 @@ class _PaymentSuccessDialog extends StatelessWidget {
                     label: 'Total',
                     value: '\u20B1${total.toStringAsFixed(2)}',
                   ),
-                  const SizedBox(height: 8),
-                  _ReceiptRow(
-                    label: 'Cash',
-                    value: '\u20B1${cashReceived.toStringAsFixed(2)}',
-                  ),
-                  const Divider(height: 24),
-                  _ReceiptRow(
-                    label: 'Change',
-                    value: '\u20B1${change.toStringAsFixed(2)}',
-                    isHighlighted: true,
-                  ),
+                  if (paymentMethod == 'cash') ...[
+                    const SizedBox(height: 8),
+                    _ReceiptRow(
+                      label: 'Cash',
+                      value: '\u20B1${cashReceived?.toStringAsFixed(2) ?? '0.00'}',
+                    ),
+                    const Divider(height: 24),
+                    _ReceiptRow(
+                      label: 'Change',
+                      value: '\u20B1${change?.toStringAsFixed(2) ?? '0.00'}',
+                      isHighlighted: true,
+                    ),
+                  ] else ...[
+                    const Divider(height: 24),
+                    const _ReceiptRow(
+                      label: 'Paid via',
+                      value: 'Online Payment',
+                      isHighlighted: true,
+                    ),
+                  ],
                 ],
               ),
             ),

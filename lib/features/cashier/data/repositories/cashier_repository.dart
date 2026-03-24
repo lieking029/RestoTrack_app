@@ -12,6 +12,10 @@ abstract class CashierRepository {
   });
 
   Future<CashierStats> getTodayStats();
+
+  Future<Map<String, String>> createOnlinePayment({required String orderId});
+
+  Future<bool> checkPaymentStatus({required String orderId});
 }
 
 class CashierStats {

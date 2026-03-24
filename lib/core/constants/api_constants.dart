@@ -1,5 +1,5 @@
 class ApiConstants {
-  static const String baseUrl = 'https://0eb9-136-158-79-82.ngrok-free.app/api/v1';
+  static const String baseUrl = 'http://98.81.163.124:9008/api/v1';
 
   static const String login = '/login';
   static const String logout = '/logout';
@@ -16,6 +16,7 @@ class ApiConstants {
   static const String cashierOrders = '/cashier/orders';
 
   static const String payments = '/cashier/payments';
+  static const String onlinePayment = '/cashier/payments/online';
   static const String transactions = '/transactions';
   
   static const String inventory = '/inventory';

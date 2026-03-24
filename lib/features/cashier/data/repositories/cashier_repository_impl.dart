@@ -69,4 +69,25 @@ class CashierRepositoryImpl implements CashierRepository {
       totalSales: totalSales,
     );
   }
+
+  @override
+  Future<Map<String, String>> createOnlinePayment({
+    required String orderId,
+  }) async {
+    final response = await _apiClient.createOnlinePayment({
+      'order_id': orderId,
+    });
+    final data = response.data as Map<String, dynamic>;
+    return {
+      'checkout_url': data['checkout_url'] as String,
+      'checkout_session_id': data['checkout_session_id'] as String,
+    };
+  }
+
+  @override
+  Future<bool> checkPaymentStatus({required String orderId}) async {
+    final response = await _apiClient.getPaymentStatus(orderId);
+    final data = response.data as Map<String, dynamic>;
+    return data['is_paid'] == true;
+  }
 }

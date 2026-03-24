@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:restotrack_app/features/cashier/data/repositories/cashier_repository.dart';
 import 'package:restotrack_app/features/cashier/presentation/bloc/cashier_event.dart';
@@ -12,9 +14,14 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
     on<CashierProcessPayment>(_onProcessPayment);
     on<CashierLoadStats>(_onLoadStats);
     on<CashierClearError>(_onClearError);
+    on<CashierCreateOnlinePayment>(_onCreateOnlinePayment);
+    on<CashierPollPaymentStatus>(_onPollPaymentStatus);
+    on<CashierCancelOnlinePayment>(_onCancelOnlinePayment);
   }
 
   final CashierRepository _cashierRepository;
+  Timer? _pollTimer;
+  Timer? _pollTimeoutTimer;
 
   Future<void> _onLoadOrders(
     CashierLoadOrders event,
@@ -134,5 +141,134 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
     Emitter<CashierState> emit,
   ) {
     emit(state.copyWith(errorMessage: null));
+  }
+
+  Future<void> _onCreateOnlinePayment(
+    CashierCreateOnlinePayment event,
+    Emitter<CashierState> emit,
+  ) async {
+    emit(
+      state.copyWith(
+        isProcessingPayment: true,
+        onlinePaymentOrderId: event.orderId,
+        errorMessage: null,
+        checkoutUrl: null,
+        checkoutSessionId: null,
+      ),
+    );
+
+    try {
+      final result = await _cashierRepository.createOnlinePayment(
+        orderId: event.orderId,
+      );
+      emit(
+        state.copyWith(
+          isProcessingPayment: false,
+          checkoutUrl: result['checkout_url'],
+          checkoutSessionId: result['checkout_session_id'],
+        ),
+      );
+
+      // Automatically start polling
+      add(CashierPollPaymentStatus(orderId: event.orderId));
+    } catch (e) {
+      emit(
+        state.copyWith(
+          isProcessingPayment: false,
+          onlinePaymentOrderId: null,
+          errorMessage: 'Failed to create online payment session',
+        ),
+      );
+    }
+  }
+
+  Future<void> _onPollPaymentStatus(
+    CashierPollPaymentStatus event,
+    Emitter<CashierState> emit,
+  ) async {
+    _cancelPolling();
+
+    emit(state.copyWith(isPollingPayment: true));
+
+    final completer = Completer<void>();
+
+    _pollTimer = Timer.periodic(const Duration(seconds: 3), (timer) async {
+      try {
+        final isPaid = await _cashierRepository.checkPaymentStatus(
+          orderId: event.orderId,
+        );
+        if (isPaid) {
+          _cancelPolling();
+
+          final paidOrder = state.orders.firstWhere(
+            (o) => o.id == event.orderId,
+          );
+
+          final orders = await _cashierRepository.getAllOrders();
+          final stats = await _cashierRepository.getTodayStats();
+
+          emit(
+            state.copyWith(
+              isPollingPayment: false,
+              checkoutUrl: null,
+              checkoutSessionId: null,
+              onlinePaymentOrderId: null,
+              orders: orders,
+              stats: stats,
+              lastCompletedOrder: paidOrder,
+            ),
+          );
+
+          if (!completer.isCompleted) completer.complete();
+        }
+      } catch (_) {
+        // Silently continue polling on error
+      }
+    });
+
+    // Timeout after 10 minutes
+    _pollTimeoutTimer = Timer(const Duration(minutes: 10), () {
+      _cancelPolling();
+      emit(
+        state.copyWith(
+          isPollingPayment: false,
+          checkoutUrl: null,
+          checkoutSessionId: null,
+          onlinePaymentOrderId: null,
+          errorMessage: 'Payment session timed out',
+        ),
+      );
+      if (!completer.isCompleted) completer.complete();
+    });
+
+    return completer.future;
+  }
+
+  void _onCancelOnlinePayment(
+    CashierCancelOnlinePayment event,
+    Emitter<CashierState> emit,
+  ) {
+    _cancelPolling();
+    emit(
+      state.copyWith(
+        isPollingPayment: false,
+        checkoutUrl: null,
+        checkoutSessionId: null,
+        onlinePaymentOrderId: null,
+      ),
+    );
+  }
+
+  void _cancelPolling() {
+    _pollTimer?.cancel();
+    _pollTimer = null;
+    _pollTimeoutTimer?.cancel();
+    _pollTimeoutTimer = null;
+  }
+
+  @override
+  Future<void> close() {
+    _cancelPolling();
+    return super.close();
   }
 }

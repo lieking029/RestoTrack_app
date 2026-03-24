@@ -23,6 +23,10 @@ mixin _$CashierState {
   String? get processingOrderId => throw _privateConstructorUsedError;
   CashierStats? get stats => throw _privateConstructorUsedError;
   OrderModel? get lastCompletedOrder => throw _privateConstructorUsedError;
+  String? get checkoutUrl => throw _privateConstructorUsedError;
+  String? get checkoutSessionId => throw _privateConstructorUsedError;
+  bool get isPollingPayment => throw _privateConstructorUsedError;
+  String? get onlinePaymentOrderId => throw _privateConstructorUsedError;
 
   /// Create a copy of CashierState
   /// with the given fields replaced by the non-null parameter values.
@@ -44,7 +48,11 @@ abstract class $CashierStateCopyWith<$Res> {
       bool isProcessingPayment,
       String? processingOrderId,
       CashierStats? stats,
-      OrderModel? lastCompletedOrder});
+      OrderModel? lastCompletedOrder,
+      String? checkoutUrl,
+      String? checkoutSessionId,
+      bool isPollingPayment,
+      String? onlinePaymentOrderId});
 
   $OrderModelCopyWith<$Res>? get lastCompletedOrder;
 }
@@ -71,6 +79,10 @@ class _$CashierStateCopyWithImpl<$Res, $Val extends CashierState>
     Object? processingOrderId = freezed,
     Object? stats = freezed,
     Object? lastCompletedOrder = freezed,
+    Object? checkoutUrl = freezed,
+    Object? checkoutSessionId = freezed,
+    Object? isPollingPayment = null,
+    Object? onlinePaymentOrderId = freezed,
   }) {
     return _then(_value.copyWith(
       orders: null == orders
@@ -101,6 +113,22 @@ class _$CashierStateCopyWithImpl<$Res, $Val extends CashierState>
           ? _value.lastCompletedOrder
           : lastCompletedOrder // ignore: cast_nullable_to_non_nullable
               as OrderModel?,
+      checkoutUrl: freezed == checkoutUrl
+          ? _value.checkoutUrl
+          : checkoutUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      checkoutSessionId: freezed == checkoutSessionId
+          ? _value.checkoutSessionId
+          : checkoutSessionId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isPollingPayment: null == isPollingPayment
+          ? _value.isPollingPayment
+          : isPollingPayment // ignore: cast_nullable_to_non_nullable
+              as bool,
+      onlinePaymentOrderId: freezed == onlinePaymentOrderId
+          ? _value.onlinePaymentOrderId
+          : onlinePaymentOrderId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 
@@ -134,7 +162,11 @@ abstract class _$$CashierStateImplCopyWith<$Res>
       bool isProcessingPayment,
       String? processingOrderId,
       CashierStats? stats,
-      OrderModel? lastCompletedOrder});
+      OrderModel? lastCompletedOrder,
+      String? checkoutUrl,
+      String? checkoutSessionId,
+      bool isPollingPayment,
+      String? onlinePaymentOrderId});
 
   @override
   $OrderModelCopyWith<$Res>? get lastCompletedOrder;
@@ -160,6 +192,10 @@ class __$$CashierStateImplCopyWithImpl<$Res>
     Object? processingOrderId = freezed,
     Object? stats = freezed,
     Object? lastCompletedOrder = freezed,
+    Object? checkoutUrl = freezed,
+    Object? checkoutSessionId = freezed,
+    Object? isPollingPayment = null,
+    Object? onlinePaymentOrderId = freezed,
   }) {
     return _then(_$CashierStateImpl(
       orders: null == orders
@@ -190,6 +226,22 @@ class __$$CashierStateImplCopyWithImpl<$Res>
           ? _value.lastCompletedOrder
           : lastCompletedOrder // ignore: cast_nullable_to_non_nullable
               as OrderModel?,
+      checkoutUrl: freezed == checkoutUrl
+          ? _value.checkoutUrl
+          : checkoutUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
+      checkoutSessionId: freezed == checkoutSessionId
+          ? _value.checkoutSessionId
+          : checkoutSessionId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      isPollingPayment: null == isPollingPayment
+          ? _value.isPollingPayment
+          : isPollingPayment // ignore: cast_nullable_to_non_nullable
+              as bool,
+      onlinePaymentOrderId: freezed == onlinePaymentOrderId
+          ? _value.onlinePaymentOrderId
+          : onlinePaymentOrderId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -204,7 +256,11 @@ class _$CashierStateImpl extends _CashierState {
       this.isProcessingPayment = false,
       this.processingOrderId,
       this.stats,
-      this.lastCompletedOrder})
+      this.lastCompletedOrder,
+      this.checkoutUrl,
+      this.checkoutSessionId,
+      this.isPollingPayment = false,
+      this.onlinePaymentOrderId})
       : _orders = orders,
         super._();
 
@@ -231,10 +287,19 @@ class _$CashierStateImpl extends _CashierState {
   final CashierStats? stats;
   @override
   final OrderModel? lastCompletedOrder;
+  @override
+  final String? checkoutUrl;
+  @override
+  final String? checkoutSessionId;
+  @override
+  @JsonKey()
+  final bool isPollingPayment;
+  @override
+  final String? onlinePaymentOrderId;
 
   @override
   String toString() {
-    return 'CashierState(orders: $orders, status: $status, errorMessage: $errorMessage, isProcessingPayment: $isProcessingPayment, processingOrderId: $processingOrderId, stats: $stats, lastCompletedOrder: $lastCompletedOrder)';
+    return 'CashierState(orders: $orders, status: $status, errorMessage: $errorMessage, isProcessingPayment: $isProcessingPayment, processingOrderId: $processingOrderId, stats: $stats, lastCompletedOrder: $lastCompletedOrder, checkoutUrl: $checkoutUrl, checkoutSessionId: $checkoutSessionId, isPollingPayment: $isPollingPayment, onlinePaymentOrderId: $onlinePaymentOrderId)';
   }
 
   @override
@@ -252,7 +317,15 @@ class _$CashierStateImpl extends _CashierState {
                 other.processingOrderId == processingOrderId) &&
             (identical(other.stats, stats) || other.stats == stats) &&
             (identical(other.lastCompletedOrder, lastCompletedOrder) ||
-                other.lastCompletedOrder == lastCompletedOrder));
+                other.lastCompletedOrder == lastCompletedOrder) &&
+            (identical(other.checkoutUrl, checkoutUrl) ||
+                other.checkoutUrl == checkoutUrl) &&
+            (identical(other.checkoutSessionId, checkoutSessionId) ||
+                other.checkoutSessionId == checkoutSessionId) &&
+            (identical(other.isPollingPayment, isPollingPayment) ||
+                other.isPollingPayment == isPollingPayment) &&
+            (identical(other.onlinePaymentOrderId, onlinePaymentOrderId) ||
+                other.onlinePaymentOrderId == onlinePaymentOrderId));
   }
 
   @override
@@ -264,7 +337,11 @@ class _$CashierStateImpl extends _CashierState {
       isProcessingPayment,
       processingOrderId,
       stats,
-      lastCompletedOrder);
+      lastCompletedOrder,
+      checkoutUrl,
+      checkoutSessionId,
+      isPollingPayment,
+      onlinePaymentOrderId);
 
   /// Create a copy of CashierState
   /// with the given fields replaced by the non-null parameter values.
@@ -283,7 +360,11 @@ abstract class _CashierState extends CashierState {
       final bool isProcessingPayment,
       final String? processingOrderId,
       final CashierStats? stats,
-      final OrderModel? lastCompletedOrder}) = _$CashierStateImpl;
+      final OrderModel? lastCompletedOrder,
+      final String? checkoutUrl,
+      final String? checkoutSessionId,
+      final bool isPollingPayment,
+      final String? onlinePaymentOrderId}) = _$CashierStateImpl;
   const _CashierState._() : super._();
 
   @override
@@ -300,6 +381,14 @@ abstract class _CashierState extends CashierState {
   CashierStats? get stats;
   @override
   OrderModel? get lastCompletedOrder;
+  @override
+  String? get checkoutUrl;
+  @override
+  String? get checkoutSessionId;
+  @override
+  bool get isPollingPayment;
+  @override
+  String? get onlinePaymentOrderId;
 
   /// Create a copy of CashierState
   /// with the given fields replaced by the non-null parameter values.
