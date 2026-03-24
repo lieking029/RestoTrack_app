@@ -14,8 +14,8 @@ class CashierRepositoryImpl implements CashierRepository {
   }
 
   @override
-  Future<List<OrderModel>> getPendingOrders() async {
-    final response = await _apiClient.getCashierOrders(status: 0);
+  Future<List<OrderModel>> getServedOrders() async {
+    final response = await _apiClient.getCashierOrders(status: 3);
     final orders = _extractOrderList(response.data);
     return orders
         .map((json) => OrderModel.fromJson(json as Map<String, dynamic>))
@@ -52,8 +52,8 @@ class CashierRepositoryImpl implements CashierRepository {
         .map((json) => OrderModel.fromJson(json as Map<String, dynamic>))
         .toList();
 
-    final pendingCount = orderModels
-        .where((o) => o.status == OrderStatus.pending)
+    final servedCount = orderModels
+        .where((o) => o.status == OrderStatus.served)
         .length;
     final completedOrders = orderModels
         .where((o) => o.status == OrderStatus.completed)
@@ -64,7 +64,7 @@ class CashierRepositoryImpl implements CashierRepository {
     );
 
     return CashierStats(
-      pendingCount: pendingCount,
+      servedCount: servedCount,
       completedCount: completedOrders.length,
       totalSales: totalSales,
     );

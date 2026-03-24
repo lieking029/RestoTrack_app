@@ -111,10 +111,10 @@ class _KdsPageState extends State<KdsPage>
         children: [
           Expanded(
             child: _StatCard(
-              icon: Icons.payment_rounded,
-              iconColor: Colors.blue,
-              label: 'Paid',
-              value: '${state.confirmedOrders.length}',
+              icon: Icons.access_time_rounded,
+              iconColor: Colors.orange,
+              label: 'Pending',
+              value: '${state.pendingOrders.length}',
             ),
           ),
           const SizedBox(width: 12),
@@ -164,7 +164,7 @@ class _KdsPageState extends State<KdsPage>
             const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
         padding: const EdgeInsets.all(4),
         tabs: const [
-          Tab(text: 'Paid'),
+          Tab(text: 'Pending'),
           Tab(text: 'Preparing'),
           Tab(text: 'Ready'),
         ],
@@ -177,10 +177,10 @@ class _KdsPageState extends State<KdsPage>
       controller: _tabController,
       children: [
         _OrderListView(
-          orders: state.confirmedOrders,
+          orders: state.pendingOrders,
           state: state,
-          emptyMessage: 'No paid orders',
-          emptyIcon: Icons.payment_outlined,
+          emptyMessage: 'No pending orders',
+          emptyIcon: Icons.access_time_outlined,
           onRefresh: () async {
             context.read<KdsBloc>().add(const KdsRefreshOrders());
           },
@@ -212,10 +212,10 @@ class _KdsPageState extends State<KdsPage>
 
   VoidCallback? _getStatusUpdateHandler(OrderModel order) {
     final newStatus = switch (order.status) {
-      OrderStatus.pending => null,
-      OrderStatus.confirmed => OrderStatus.inPreparation,
+      OrderStatus.pending => OrderStatus.inPreparation,
       OrderStatus.inPreparation => OrderStatus.ready,
       OrderStatus.ready => null,
+      OrderStatus.served => null,
       OrderStatus.completed => null,
       OrderStatus.cancelled => null,
     };

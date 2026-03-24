@@ -81,7 +81,7 @@ class _PosOrderListPageState extends State<PosOrderListPage>
                       const Icon(Icons.payments_rounded, size: 18),
                       const SizedBox(width: 8),
                       const Text('Ready to Pay'),
-                      if (state.pendingOrders.isNotEmpty) ...[
+                      if (state.servedOrders.isNotEmpty) ...[
                         const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -93,7 +93,7 @@ class _PosOrderListPageState extends State<PosOrderListPage>
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            '${state.pendingOrders.length}',
+                            '${state.servedOrders.length}',
                             style: const TextStyle(
                               color: AppColors.primaryGreen,
                               fontSize: 12,
@@ -140,13 +140,13 @@ class _PosOrderListPageState extends State<PosOrderListPage>
             controller: _tabController,
             children: [
               _buildOrderList(
-                state.pendingOrders,
-                isPendingTab: true,
+                state.servedOrders,
+                isServedTab: true,
                 state: state,
               ),
               _buildOrderList(
                 state.orders,
-                isPendingTab: false,
+                isServedTab: false,
                 state: state,
               ),
             ],
@@ -158,7 +158,7 @@ class _PosOrderListPageState extends State<PosOrderListPage>
 
   Widget _buildOrderList(
     List<OrderModel> orders, {
-    required bool isPendingTab,
+    required bool isServedTab,
     required CashierState state,
   }) {
     if (orders.isEmpty) {
@@ -167,7 +167,7 @@ class _PosOrderListPageState extends State<PosOrderListPage>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              isPendingTab
+              isServedTab
                   ? Icons.payments_outlined
                   : Icons.receipt_long_outlined,
               size: 64,
@@ -175,7 +175,7 @@ class _PosOrderListPageState extends State<PosOrderListPage>
             ),
             const SizedBox(height: 16),
             Text(
-              isPendingTab ? 'No pending orders' : 'No orders yet',
+              isServedTab ? 'No served orders' : 'No orders yet',
               style: TextStyle(
                 fontSize: 16,
                 color: Colors.grey[600],
@@ -183,8 +183,8 @@ class _PosOrderListPageState extends State<PosOrderListPage>
             ),
             const SizedBox(height: 8),
             Text(
-              isPendingTab
-                  ? 'Orders will appear here when servers create them'
+              isServedTab
+                  ? 'Orders will appear here after servers deliver them'
                   : 'Orders will appear here once created',
               style: TextStyle(
                 fontSize: 14,
@@ -214,7 +214,7 @@ class _PosOrderListPageState extends State<PosOrderListPage>
           final order = orders[index];
           return _OrderCard(
             order: order,
-            onTap: order.status == OrderStatus.pending
+            onTap: order.status == OrderStatus.served
                 ? () => _onOrderSelected(order)
                 : null,
           );
@@ -235,7 +235,7 @@ class _OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isPending = order.status == OrderStatus.pending;
+    final isServed = order.status == OrderStatus.served;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -243,10 +243,10 @@ class _OrderCard extends StatelessWidget {
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isPending ? AppColors.primaryGreen : AppColors.border,
-          width: isPending ? 2 : 1,
+          color: isServed ? AppColors.primaryGreen : AppColors.border,
+          width: isServed ? 2 : 1,
         ),
-        boxShadow: isPending
+        boxShadow: isServed
             ? [
                 BoxShadow(
                   color: AppColors.primaryGreen.withValues(alpha: 0.1),
@@ -271,14 +271,14 @@ class _OrderCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: isPending
+                        color: isServed
                             ? AppColors.primaryGreen.withValues(alpha: 0.1)
                             : AppColors.background,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Icon(
                         Icons.restaurant_rounded,
-                        color: isPending
+                        color: isServed
                             ? AppColors.primaryGreen
                             : AppColors.textSecondary,
                         size: 20,
@@ -373,7 +373,7 @@ class _OrderCard extends StatelessWidget {
                 ),
 
                 // Action Button for Ready Orders
-                if (isPending) ...[
+                if (isServed) ...[
                   const SizedBox(height: 12),
                   SizedBox(
                     width: double.infinity,
@@ -414,9 +414,9 @@ class _StatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final (label, color) = switch (status) {
       OrderStatus.pending => ('Pending', Colors.orange),
-      OrderStatus.confirmed => ('Confirmed', Colors.blue),
       OrderStatus.inPreparation => ('In Preparation', AppColors.purple),
       OrderStatus.ready => ('Ready', AppColors.primaryGreen),
+      OrderStatus.served => ('Served', Colors.teal),
       OrderStatus.completed => ('Paid', AppColors.primaryGreen),
       OrderStatus.cancelled => ('Cancelled', Colors.red),
     };

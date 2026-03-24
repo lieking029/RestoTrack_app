@@ -210,7 +210,7 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Text(
-              'Pending Payment',
+              'Ready for Payment',
               style: TextStyle(
                 color: Colors.orange,
                 fontWeight: FontWeight.w600,

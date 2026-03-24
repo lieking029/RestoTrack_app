@@ -11,7 +11,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     on<OrderRefreshOrders>(_onRefreshOrders);
     on<OrderLoadOrder>(_onLoadOrder);
     on<OrderCancelOrder>(_onCancelOrder);
-    on<OrderCompleteOrder>(_onCompleteOrder);
+    on<OrderServeOrder>(_onServeOrder);
     on<OrderClearError>(_onClearError);
   }
 
@@ -111,14 +111,14 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     }
   }
 
-  Future<void> _onCompleteOrder(
-    OrderCompleteOrder event,
+  Future<void> _onServeOrder(
+    OrderServeOrder event,
     Emitter<OrderState> emit,
   ) async {
     emit(state.copyWith(isUpdating: true, errorMessage: null, successMessage: null));
 
     try {
-      final updatedOrder = await _orderRepository.completeOrder(event.id);
+      final updatedOrder = await _orderRepository.serveOrder(event.id);
 
       // Update order in the list
       final updatedOrders = state.orders.map((order) {

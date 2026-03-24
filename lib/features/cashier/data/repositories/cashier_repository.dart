@@ -1,7 +1,7 @@
 import 'package:restotrack_app/features/orders/data/models/order_model.dart';
 
 abstract class CashierRepository {
-  Future<List<OrderModel>> getPendingOrders();
+  Future<List<OrderModel>> getServedOrders();
 
   Future<List<OrderModel>> getAllOrders();
 
@@ -19,12 +19,12 @@ abstract class CashierRepository {
 }
 
 class CashierStats {
-  final int pendingCount;
+  final int servedCount;
   final int completedCount;
   final double totalSales;
 
   const CashierStats({
-    required this.pendingCount,
+    required this.servedCount,
     required this.completedCount,
     required this.totalSales,
   });

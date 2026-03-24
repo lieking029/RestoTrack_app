@@ -30,9 +30,6 @@ class KdsState with _$KdsState {
   List<OrderModel> get pendingOrders =>
       orders.where((o) => o.status == OrderStatus.pending).toList();
 
-  List<OrderModel> get confirmedOrders =>
-      orders.where((o) => o.status == OrderStatus.confirmed).toList();
-
   List<OrderModel> get inPreparationOrders =>
       orders.where((o) => o.status == OrderStatus.inPreparation).toList();
 

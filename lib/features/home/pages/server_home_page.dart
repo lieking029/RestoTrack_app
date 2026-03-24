@@ -245,7 +245,7 @@ class _ServerHomePageState extends State<ServerHomePage>
           controller: _tabController,
           children: [
             _OrderListView(
-              orders: [...state.pendingOrders, ...state.confirmedOrders, ...state.inPreparationOrders],
+              orders: [...state.pendingOrders, ...state.inPreparationOrders],
               emptyMessage: 'No active orders',
               emptyIcon: Icons.receipt_long_outlined,
             ),
@@ -491,7 +491,7 @@ class _ServerOrderCard extends StatelessWidget {
                   ),
                 if (order.status.canComplete)
                   ElevatedButton(
-                    onPressed: () => _completeOrder(context),
+                    onPressed: () => _serveOrder(context),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryGreen,
                       foregroundColor: AppColors.white,
@@ -509,8 +509,8 @@ class _ServerOrderCard extends StatelessWidget {
     );
   }
 
-  void _completeOrder(BuildContext context) {
-    context.read<OrderBloc>().add(OrderCompleteOrder(order.id));
+  void _serveOrder(BuildContext context) {
+    context.read<OrderBloc>().add(OrderServeOrder(order.id));
   }
 
   void _showCancelDialog(BuildContext context) {
@@ -549,12 +549,12 @@ class _StatusBadge extends StatelessWidget {
     switch (status) {
       case OrderStatus.pending:
         color = Colors.orange;
-      case OrderStatus.confirmed:
-        color = Colors.blue;
       case OrderStatus.inPreparation:
         color = AppColors.purple;
       case OrderStatus.ready:
         color = AppColors.primaryGreen;
+      case OrderStatus.served:
+        color = Colors.teal;
       case OrderStatus.completed:
         color = Colors.blue;
       case OrderStatus.cancelled:

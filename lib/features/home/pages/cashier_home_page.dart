@@ -133,7 +133,7 @@ class _CashierHomePageState extends State<CashierHomePage> {
                 iconColor: AppColors.purple,
                 iconBgColor: AppColors.purple.withValues(alpha: 0.1),
                 label: 'Ready to Pay',
-                value: '${stats?.pendingCount ?? state.pendingOrders.length}',
+                value: '${stats?.servedCount ?? state.servedOrders.length}',
               ),
             ),
             const SizedBox(width: 12),

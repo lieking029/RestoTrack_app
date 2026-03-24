@@ -105,12 +105,12 @@ class KdsOrderCard extends StatelessWidget {
     switch (order.status) {
       case OrderStatus.pending:
         color = Colors.orange;
-      case OrderStatus.confirmed:
-        color = Colors.blue;
       case OrderStatus.inPreparation:
         color = AppColors.purple;
       case OrderStatus.ready:
         color = AppColors.primaryGreen;
+      case OrderStatus.served:
+        color = Colors.teal;
       case OrderStatus.completed:
         color = Colors.blue;
       case OrderStatus.cancelled:
@@ -191,13 +191,13 @@ class KdsOrderCard extends StatelessWidget {
   }
 
   bool get _showActionButton =>
-      order.status == OrderStatus.confirmed ||
+      order.status == OrderStatus.pending ||
       order.status == OrderStatus.inPreparation;
 
   Widget _buildActionButton() {
-    final isConfirmed = order.status == OrderStatus.confirmed;
-    final buttonText = isConfirmed ? 'Start Preparing' : 'Mark Ready';
-    final buttonColor = isConfirmed ? Colors.deepOrange : AppColors.primaryGreen;
+    final isPending = order.status == OrderStatus.pending;
+    final buttonText = isPending ? 'Start Preparing' : 'Mark Ready';
+    final buttonColor = isPending ? Colors.deepOrange : AppColors.primaryGreen;
 
     return SizedBox(
       width: double.infinity,

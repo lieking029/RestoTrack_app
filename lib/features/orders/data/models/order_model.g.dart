@@ -52,9 +52,9 @@ Map<String, dynamic> _$$OrderModelImplToJson(_$OrderModelImpl instance) =>
 
 const _$OrderStatusEnumMap = {
   OrderStatus.pending: 0,
-  OrderStatus.confirmed: 1,
-  OrderStatus.inPreparation: 2,
-  OrderStatus.ready: 3,
+  OrderStatus.inPreparation: 1,
+  OrderStatus.ready: 2,
+  OrderStatus.served: 3,
   OrderStatus.completed: 4,
   OrderStatus.cancelled: 5,
 };

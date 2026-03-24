@@ -45,8 +45,8 @@ class OrderRepositoryImpl implements OrderRepository {
   }
 
   @override
-  Future<OrderModel> completeOrder(String id) async {
-    final response = await _apiClient.completeOrder(id);
+  Future<OrderModel> serveOrder(String id) async {
+    final response = await _apiClient.serveOrder(id);
     return OrderModel.fromJson(_extractObject(response.data));
   }
 }

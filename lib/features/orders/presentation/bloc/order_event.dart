@@ -40,8 +40,8 @@ class OrderCancelOrder extends OrderEvent {
   List<Object?> get props => [id, reason];
 }
 
-class OrderCompleteOrder extends OrderEvent {
-  const OrderCompleteOrder(this.id);
+class OrderServeOrder extends OrderEvent {
+  const OrderServeOrder(this.id);
 
   final String id;
 

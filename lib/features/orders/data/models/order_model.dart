@@ -10,11 +10,11 @@ enum OrderStatus {
   @JsonValue(0)
   pending,
   @JsonValue(1)
-  confirmed,
-  @JsonValue(2)
   inPreparation,
-  @JsonValue(3)
+  @JsonValue(2)
   ready,
+  @JsonValue(3)
+  served,
   @JsonValue(4)
   completed,
   @JsonValue(5)
@@ -24,12 +24,12 @@ enum OrderStatus {
     switch (this) {
       case OrderStatus.pending:
         return 'Pending';
-      case OrderStatus.confirmed:
-        return 'Confirmed';
       case OrderStatus.inPreparation:
         return 'In Preparation';
       case OrderStatus.ready:
         return 'Ready';
+      case OrderStatus.served:
+        return 'Served';
       case OrderStatus.completed:
         return 'Completed';
       case OrderStatus.cancelled:
@@ -38,8 +38,8 @@ enum OrderStatus {
   }
 
   bool get isActive =>
-      this == pending || this == confirmed || this == inPreparation || this == ready;
-  bool get canCancel => this == pending || this == confirmed;
+      this == pending || this == inPreparation || this == ready || this == served;
+  bool get canCancel => this == pending || this == inPreparation;
   bool get canComplete => this == ready;
 }
 

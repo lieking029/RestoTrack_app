@@ -33,8 +33,8 @@ class CashierState with _$CashierState {
   bool get hasError => status == CashierStateStatus.error;
   bool get isEmpty => orders.isEmpty && status == CashierStateStatus.success;
 
-  List<OrderModel> get pendingOrders =>
-      orders.where((o) => o.status == OrderStatus.pending).toList();
+  List<OrderModel> get servedOrders =>
+      orders.where((o) => o.status == OrderStatus.served).toList();
 
   List<OrderModel> get completedOrders =>
       orders.where((o) => o.status == OrderStatus.completed).toList();

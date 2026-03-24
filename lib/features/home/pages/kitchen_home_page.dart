@@ -108,10 +108,10 @@ class _KitchenHomePageState extends State<KitchenHomePage> {
           children: [
             Expanded(
               child: _StatCard(
-                icon: Icons.payment_rounded,
-                iconColor: Colors.blue,
-                label: 'Paid',
-                value: '${state.confirmedOrders.length}',
+                icon: Icons.access_time_rounded,
+                iconColor: Colors.orange,
+                label: 'Pending',
+                value: '${state.pendingOrders.length}',
               ),
             ),
             const SizedBox(width: 12),
