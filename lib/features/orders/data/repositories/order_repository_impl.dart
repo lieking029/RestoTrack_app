@@ -49,4 +49,10 @@ class OrderRepositoryImpl implements OrderRepository {
     final response = await _apiClient.serveOrder(id);
     return OrderModel.fromJson(_extractObject(response.data));
   }
+
+  @override
+  Future<OrderModel> editOrder(String id, CartModel cart) async {
+    final response = await _apiClient.editOrder(id, cart.toRequest());
+    return OrderModel.fromJson(_extractObject(response.data));
+  }
 }

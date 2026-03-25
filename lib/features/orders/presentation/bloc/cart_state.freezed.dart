@@ -20,6 +20,7 @@ mixin _$CartState {
   CartStatus get status => throw _privateConstructorUsedError;
   OrderModel? get submittedOrder => throw _privateConstructorUsedError;
   String? get errorMessage => throw _privateConstructorUsedError;
+  String? get editingOrderId => throw _privateConstructorUsedError;
 
   /// Create a copy of CartState
   /// with the given fields replaced by the non-null parameter values.
@@ -37,7 +38,8 @@ abstract class $CartStateCopyWith<$Res> {
       {CartModel cart,
       CartStatus status,
       OrderModel? submittedOrder,
-      String? errorMessage});
+      String? errorMessage,
+      String? editingOrderId});
 
   $CartModelCopyWith<$Res> get cart;
   $OrderModelCopyWith<$Res>? get submittedOrder;
@@ -62,6 +64,7 @@ class _$CartStateCopyWithImpl<$Res, $Val extends CartState>
     Object? status = null,
     Object? submittedOrder = freezed,
     Object? errorMessage = freezed,
+    Object? editingOrderId = freezed,
   }) {
     return _then(_value.copyWith(
       cart: null == cart
@@ -79,6 +82,10 @@ class _$CartStateCopyWithImpl<$Res, $Val extends CartState>
       errorMessage: freezed == errorMessage
           ? _value.errorMessage
           : errorMessage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      editingOrderId: freezed == editingOrderId
+          ? _value.editingOrderId
+          : editingOrderId // ignore: cast_nullable_to_non_nullable
               as String?,
     ) as $Val);
   }
@@ -120,7 +127,8 @@ abstract class _$$CartStateImplCopyWith<$Res>
       {CartModel cart,
       CartStatus status,
       OrderModel? submittedOrder,
-      String? errorMessage});
+      String? errorMessage,
+      String? editingOrderId});
 
   @override
   $CartModelCopyWith<$Res> get cart;
@@ -145,6 +153,7 @@ class __$$CartStateImplCopyWithImpl<$Res>
     Object? status = null,
     Object? submittedOrder = freezed,
     Object? errorMessage = freezed,
+    Object? editingOrderId = freezed,
   }) {
     return _then(_$CartStateImpl(
       cart: null == cart
@@ -163,6 +172,10 @@ class __$$CartStateImplCopyWithImpl<$Res>
           ? _value.errorMessage
           : errorMessage // ignore: cast_nullable_to_non_nullable
               as String?,
+      editingOrderId: freezed == editingOrderId
+          ? _value.editingOrderId
+          : editingOrderId // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -174,7 +187,8 @@ class _$CartStateImpl extends _CartState {
       {this.cart = const CartModel(),
       this.status = CartStatus.initial,
       this.submittedOrder,
-      this.errorMessage})
+      this.errorMessage,
+      this.editingOrderId})
       : super._();
 
   @override
@@ -187,10 +201,12 @@ class _$CartStateImpl extends _CartState {
   final OrderModel? submittedOrder;
   @override
   final String? errorMessage;
+  @override
+  final String? editingOrderId;
 
   @override
   String toString() {
-    return 'CartState(cart: $cart, status: $status, submittedOrder: $submittedOrder, errorMessage: $errorMessage)';
+    return 'CartState(cart: $cart, status: $status, submittedOrder: $submittedOrder, errorMessage: $errorMessage, editingOrderId: $editingOrderId)';
   }
 
   @override
@@ -203,12 +219,14 @@ class _$CartStateImpl extends _CartState {
             (identical(other.submittedOrder, submittedOrder) ||
                 other.submittedOrder == submittedOrder) &&
             (identical(other.errorMessage, errorMessage) ||
-                other.errorMessage == errorMessage));
+                other.errorMessage == errorMessage) &&
+            (identical(other.editingOrderId, editingOrderId) ||
+                other.editingOrderId == editingOrderId));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, cart, status, submittedOrder, errorMessage);
+  int get hashCode => Object.hash(
+      runtimeType, cart, status, submittedOrder, errorMessage, editingOrderId);
 
   /// Create a copy of CartState
   /// with the given fields replaced by the non-null parameter values.
@@ -224,7 +242,8 @@ abstract class _CartState extends CartState {
       {final CartModel cart,
       final CartStatus status,
       final OrderModel? submittedOrder,
-      final String? errorMessage}) = _$CartStateImpl;
+      final String? errorMessage,
+      final String? editingOrderId}) = _$CartStateImpl;
   const _CartState._() : super._();
 
   @override
@@ -235,6 +254,8 @@ abstract class _CartState extends CartState {
   OrderModel? get submittedOrder;
   @override
   String? get errorMessage;
+  @override
+  String? get editingOrderId;
 
   /// Create a copy of CartState
   /// with the given fields replaced by the non-null parameter values.

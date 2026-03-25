@@ -35,6 +35,13 @@ mixin _$OrderModel {
   List<OrderItemModel> get items => throw _privateConstructorUsedError;
   UserSummary? get creator => throw _privateConstructorUsedError;
   UserSummary? get processor => throw _privateConstructorUsedError;
+  String? get discountType => throw _privateConstructorUsedError;
+  String? get customerName => throw _privateConstructorUsedError;
+  String? get idNumber => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _toDouble)
+  double get discountAmount => throw _privateConstructorUsedError;
+  @JsonKey(fromJson: _toDouble)
+  double get discountTotal => throw _privateConstructorUsedError;
 
   /// Serializes this OrderModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -64,7 +71,12 @@ abstract class $OrderModelCopyWith<$Res> {
       DateTime? updatedAt,
       List<OrderItemModel> items,
       UserSummary? creator,
-      UserSummary? processor});
+      UserSummary? processor,
+      String? discountType,
+      String? customerName,
+      String? idNumber,
+      @JsonKey(fromJson: _toDouble) double discountAmount,
+      @JsonKey(fromJson: _toDouble) double discountTotal});
 
   $UserSummaryCopyWith<$Res>? get creator;
   $UserSummaryCopyWith<$Res>? get processor;
@@ -97,6 +109,11 @@ class _$OrderModelCopyWithImpl<$Res, $Val extends OrderModel>
     Object? items = null,
     Object? creator = freezed,
     Object? processor = freezed,
+    Object? discountType = freezed,
+    Object? customerName = freezed,
+    Object? idNumber = freezed,
+    Object? discountAmount = null,
+    Object? discountTotal = null,
   }) {
     return _then(_value.copyWith(
       id: null == id
@@ -147,6 +164,26 @@ class _$OrderModelCopyWithImpl<$Res, $Val extends OrderModel>
           ? _value.processor
           : processor // ignore: cast_nullable_to_non_nullable
               as UserSummary?,
+      discountType: freezed == discountType
+          ? _value.discountType
+          : discountType // ignore: cast_nullable_to_non_nullable
+              as String?,
+      customerName: freezed == customerName
+          ? _value.customerName
+          : customerName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      idNumber: freezed == idNumber
+          ? _value.idNumber
+          : idNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      discountAmount: null == discountAmount
+          ? _value.discountAmount
+          : discountAmount // ignore: cast_nullable_to_non_nullable
+              as double,
+      discountTotal: null == discountTotal
+          ? _value.discountTotal
+          : discountTotal // ignore: cast_nullable_to_non_nullable
+              as double,
     ) as $Val);
   }
 
@@ -199,7 +236,12 @@ abstract class _$$OrderModelImplCopyWith<$Res>
       DateTime? updatedAt,
       List<OrderItemModel> items,
       UserSummary? creator,
-      UserSummary? processor});
+      UserSummary? processor,
+      String? discountType,
+      String? customerName,
+      String? idNumber,
+      @JsonKey(fromJson: _toDouble) double discountAmount,
+      @JsonKey(fromJson: _toDouble) double discountTotal});
 
   @override
   $UserSummaryCopyWith<$Res>? get creator;
@@ -232,6 +274,11 @@ class __$$OrderModelImplCopyWithImpl<$Res>
     Object? items = null,
     Object? creator = freezed,
     Object? processor = freezed,
+    Object? discountType = freezed,
+    Object? customerName = freezed,
+    Object? idNumber = freezed,
+    Object? discountAmount = null,
+    Object? discountTotal = null,
   }) {
     return _then(_$OrderModelImpl(
       id: null == id
@@ -282,6 +329,26 @@ class __$$OrderModelImplCopyWithImpl<$Res>
           ? _value.processor
           : processor // ignore: cast_nullable_to_non_nullable
               as UserSummary?,
+      discountType: freezed == discountType
+          ? _value.discountType
+          : discountType // ignore: cast_nullable_to_non_nullable
+              as String?,
+      customerName: freezed == customerName
+          ? _value.customerName
+          : customerName // ignore: cast_nullable_to_non_nullable
+              as String?,
+      idNumber: freezed == idNumber
+          ? _value.idNumber
+          : idNumber // ignore: cast_nullable_to_non_nullable
+              as String?,
+      discountAmount: null == discountAmount
+          ? _value.discountAmount
+          : discountAmount // ignore: cast_nullable_to_non_nullable
+              as double,
+      discountTotal: null == discountTotal
+          ? _value.discountTotal
+          : discountTotal // ignore: cast_nullable_to_non_nullable
+              as double,
     ));
   }
 }
@@ -301,7 +368,12 @@ class _$OrderModelImpl extends _OrderModel {
       this.updatedAt,
       final List<OrderItemModel> items = const [],
       this.creator,
-      this.processor})
+      this.processor,
+      this.discountType,
+      this.customerName,
+      this.idNumber,
+      @JsonKey(fromJson: _toDouble) this.discountAmount = 0,
+      @JsonKey(fromJson: _toDouble) this.discountTotal = 0})
       : _items = items,
         super._();
 
@@ -343,10 +415,22 @@ class _$OrderModelImpl extends _OrderModel {
   final UserSummary? creator;
   @override
   final UserSummary? processor;
+  @override
+  final String? discountType;
+  @override
+  final String? customerName;
+  @override
+  final String? idNumber;
+  @override
+  @JsonKey(fromJson: _toDouble)
+  final double discountAmount;
+  @override
+  @JsonKey(fromJson: _toDouble)
+  final double discountTotal;
 
   @override
   String toString() {
-    return 'OrderModel(id: $id, createdBy: $createdBy, processedBy: $processedBy, status: $status, subtotal: $subtotal, tax: $tax, total: $total, createdAt: $createdAt, updatedAt: $updatedAt, items: $items, creator: $creator, processor: $processor)';
+    return 'OrderModel(id: $id, createdBy: $createdBy, processedBy: $processedBy, status: $status, subtotal: $subtotal, tax: $tax, total: $total, createdAt: $createdAt, updatedAt: $updatedAt, items: $items, creator: $creator, processor: $processor, discountType: $discountType, customerName: $customerName, idNumber: $idNumber, discountAmount: $discountAmount, discountTotal: $discountTotal)';
   }
 
   @override
@@ -371,7 +455,17 @@ class _$OrderModelImpl extends _OrderModel {
             const DeepCollectionEquality().equals(other._items, _items) &&
             (identical(other.creator, creator) || other.creator == creator) &&
             (identical(other.processor, processor) ||
-                other.processor == processor));
+                other.processor == processor) &&
+            (identical(other.discountType, discountType) ||
+                other.discountType == discountType) &&
+            (identical(other.customerName, customerName) ||
+                other.customerName == customerName) &&
+            (identical(other.idNumber, idNumber) ||
+                other.idNumber == idNumber) &&
+            (identical(other.discountAmount, discountAmount) ||
+                other.discountAmount == discountAmount) &&
+            (identical(other.discountTotal, discountTotal) ||
+                other.discountTotal == discountTotal));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -389,7 +483,12 @@ class _$OrderModelImpl extends _OrderModel {
       updatedAt,
       const DeepCollectionEquality().hash(_items),
       creator,
-      processor);
+      processor,
+      discountType,
+      customerName,
+      idNumber,
+      discountAmount,
+      discountTotal);
 
   /// Create a copy of OrderModel
   /// with the given fields replaced by the non-null parameter values.
@@ -409,18 +508,24 @@ class _$OrderModelImpl extends _OrderModel {
 
 abstract class _OrderModel extends OrderModel {
   const factory _OrderModel(
-      {required final String id,
-      required final String createdBy,
-      final String? processedBy,
-      final OrderStatus status,
-      @JsonKey(fromJson: _toDouble) final double subtotal,
-      @JsonKey(fromJson: _toDouble) final double tax,
-      @JsonKey(fromJson: _toDouble) final double total,
-      final DateTime? createdAt,
-      final DateTime? updatedAt,
-      final List<OrderItemModel> items,
-      final UserSummary? creator,
-      final UserSummary? processor}) = _$OrderModelImpl;
+          {required final String id,
+          required final String createdBy,
+          final String? processedBy,
+          final OrderStatus status,
+          @JsonKey(fromJson: _toDouble) final double subtotal,
+          @JsonKey(fromJson: _toDouble) final double tax,
+          @JsonKey(fromJson: _toDouble) final double total,
+          final DateTime? createdAt,
+          final DateTime? updatedAt,
+          final List<OrderItemModel> items,
+          final UserSummary? creator,
+          final UserSummary? processor,
+          final String? discountType,
+          final String? customerName,
+          final String? idNumber,
+          @JsonKey(fromJson: _toDouble) final double discountAmount,
+          @JsonKey(fromJson: _toDouble) final double discountTotal}) =
+      _$OrderModelImpl;
   const _OrderModel._() : super._();
 
   factory _OrderModel.fromJson(Map<String, dynamic> json) =
@@ -453,6 +558,18 @@ abstract class _OrderModel extends OrderModel {
   UserSummary? get creator;
   @override
   UserSummary? get processor;
+  @override
+  String? get discountType;
+  @override
+  String? get customerName;
+  @override
+  String? get idNumber;
+  @override
+  @JsonKey(fromJson: _toDouble)
+  double get discountAmount;
+  @override
+  @JsonKey(fromJson: _toDouble)
+  double get discountTotal;
 
   /// Create a copy of OrderModel
   /// with the given fields replaced by the non-null parameter values.

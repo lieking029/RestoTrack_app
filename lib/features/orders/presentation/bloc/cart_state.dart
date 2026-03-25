@@ -22,6 +22,7 @@ class CartState with _$CartState {
     @Default(CartStatus.initial) CartStatus status,
     OrderModel? submittedOrder,
     String? errorMessage,
+    String? editingOrderId,
   }) = _CartState;
 
   bool get isEmpty => cart.isEmpty;

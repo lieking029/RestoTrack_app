@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:restotrack_app/features/orders/data/models/cart_model.dart';
+import 'package:restotrack_app/features/orders/data/models/order_model.dart';
 import 'package:restotrack_app/features/orders/data/repositories/order_repository.dart';
 import 'package:restotrack_app/features/orders/presentation/bloc/cart_event.dart';
 import 'package:restotrack_app/features/orders/presentation/bloc/cart_state.dart';
@@ -16,6 +17,8 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     on<CartUpdateNotes>(_onUpdateNotes);
     on<CartClear>(_onClear);
     on<CartSubmitOrder>(_onSubmitOrder);
+    on<CartLoadFromOrder>(_onLoadFromOrder);
+    on<CartEditOrder>(_onEditOrder);
   }
 
   final OrderRepository _orderRepository;
@@ -92,6 +95,55 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       emit(state.copyWith(
         status: CartStatus.error,
         errorMessage: 'Failed to submit order. Please try again.',
+      ));
+    }
+  }
+
+  void _onLoadFromOrder(CartLoadFromOrder event, Emitter<CartState> emit) {
+    final items = event.order.items.map((item) {
+      return CartItemModel(
+        menuId: item.menuId,
+        name: item.name,
+        unitPrice: item.unitPrice,
+        quantity: item.quantity,
+      );
+    }).toList();
+
+    emit(state.copyWith(
+      cart: CartModel(items: items),
+      status: CartStatus.success,
+      editingOrderId: event.order.id,
+      submittedOrder: null,
+      errorMessage: null,
+    ));
+  }
+
+  Future<void> _onEditOrder(
+    CartEditOrder event,
+    Emitter<CartState> emit,
+  ) async {
+    if (state.isEmpty) {
+      emit(state.copyWith(
+        status: CartStatus.error,
+        errorMessage: 'Cart is empty',
+      ));
+      return;
+    }
+
+    emit(state.copyWith(status: CartStatus.submitting, errorMessage: null));
+
+    try {
+      final order = await _orderRepository.editOrder(event.orderId, state.cart);
+      emit(state.copyWith(
+        status: CartStatus.submitted,
+        submittedOrder: order,
+        cart: const CartModel(),
+        editingOrderId: null,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        status: CartStatus.error,
+        errorMessage: 'Failed to update order. Please try again.',
       ));
     }
   }

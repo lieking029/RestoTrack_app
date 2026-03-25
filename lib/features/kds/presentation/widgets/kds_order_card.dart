@@ -35,11 +35,17 @@ class KdsOrderCard extends StatelessWidget {
             if (order.items.length > 3)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  '+${order.items.length - 3} more items',
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
+                child: GestureDetector(
+                  onTap: () => _showAllItems(context),
+                  child: Text(
+                    '+${order.items.length - 3} more items',
+                    style: const TextStyle(
+                      color: AppColors.primaryGreen,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      decoration: TextDecoration.underline,
+                      decorationColor: AppColors.primaryGreen,
+                    ),
                   ),
                 ),
               ),
@@ -187,6 +193,75 @@ class KdsOrderCard extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  void _showAllItems(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.receipt_rounded, color: AppColors.primaryGreen),
+            const SizedBox(width: 8),
+            Text(
+              'Order #${order.orderNumber}',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: 400,
+          child: ListView.separated(
+            shrinkWrap: true,
+            itemCount: order.items.length,
+            separatorBuilder: (_, __) => const Divider(height: 16, color: AppColors.border),
+            itemBuilder: (context, index) {
+              final item = order.items[index];
+              return Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryGreen.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '${item.quantity}x',
+                        style: const TextStyle(
+                          color: AppColors.primaryGreen,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      item.name,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
   }
 

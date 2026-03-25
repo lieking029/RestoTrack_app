@@ -14,6 +14,8 @@ import 'package:restotrack_app/features/orders/presentation/bloc/order_bloc.dart
 import 'package:restotrack_app/features/orders/presentation/bloc/order_event.dart';
 import 'package:restotrack_app/features/orders/presentation/bloc/order_state.dart';
 import 'package:restotrack_app/features/server/presentation/pages/create_order_page.dart';
+import 'package:restotrack_app/features/server/presentation/pages/edit_order_page.dart';
+import 'package:restotrack_app/core/di/injection.dart';
 
 class ServerHomePage extends StatefulWidget {
   const ServerHomePage({required this.user, super.key});
@@ -483,6 +485,12 @@ class _ServerOrderCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (order.status == OrderStatus.pending)
+                  TextButton(
+                    onPressed: () => _editOrder(context),
+                    style: TextButton.styleFrom(foregroundColor: AppColors.primaryGreen),
+                    child: const Text('Edit'),
+                  ),
                 if (order.status.canCancel)
                   TextButton(
                     onPressed: () => _showCancelDialog(context),
@@ -507,6 +515,23 @@ class _ServerOrderCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _editOrder(BuildContext context) {
+    final orderBloc = context.read<OrderBloc>();
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (_) => sl<MenuBloc>()),
+            BlocProvider(create: (_) => sl<CartBloc>()),
+          ],
+          child: EditOrderPage(order: order),
+        ),
+      ),
+    ).then((_) {
+      orderBloc.add(const OrderRefreshOrders());
+    });
   }
 
   void _serveOrder(BuildContext context) {

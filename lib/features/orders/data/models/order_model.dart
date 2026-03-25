@@ -66,6 +66,11 @@ class OrderModel with _$OrderModel {
     @Default([]) List<OrderItemModel> items,
     UserSummary? creator,
     UserSummary? processor,
+    String? discountType,
+    String? customerName,
+    String? idNumber,
+    @JsonKey(fromJson: _toDouble) @Default(0) double discountAmount,
+    @JsonKey(fromJson: _toDouble) @Default(0) double discountTotal,
   }) = _OrderModel;
   const OrderModel._();
 

@@ -98,6 +98,9 @@ class ApiClient {
   Future<Response<dynamic>> cancelOrder(String orderId) =>
       _dio.put('${ApiConstants.order}/$orderId/cancel');
 
+  Future<Response<dynamic>> editOrder(String orderId, Map<String, dynamic> data) =>
+      _dio.put('${ApiConstants.order}/$orderId', data: data);
+
   Future<Response<dynamic>> getKitchenOrders() =>
       _dio.get(ApiConstants.kitchenOrders);
 

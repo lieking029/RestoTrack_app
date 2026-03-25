@@ -36,12 +36,21 @@ class CashierRepositoryImpl implements CashierRepository {
     required String orderId,
     required double amountPaid,
     required String paymentMethod,
+    String? discountType,
+    String? customerName,
+    String? idNumber,
   }) async {
-    await _apiClient.processPayment({
+    final data = <String, dynamic>{
       'order_id': orderId,
       'amount_paid': amountPaid,
       'payment_method': paymentMethod,
-    });
+    };
+    if (discountType != null) {
+      data['discount_type'] = discountType;
+      data['customer_name'] = customerName;
+      data['id_number'] = idNumber;
+    }
+    await _apiClient.processPayment(data);
   }
 
   @override

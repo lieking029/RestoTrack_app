@@ -30,7 +30,7 @@ _$CartModelImpl _$$CartModelImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => CartItemModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      taxRate: (json['taxRate'] as num?)?.toDouble() ?? 0.12,
+      taxRate: (json['taxRate'] as num?)?.toDouble() ?? 0,
     );
 
 Map<String, dynamic> _$$CartModelImplToJson(_$CartModelImpl instance) =>

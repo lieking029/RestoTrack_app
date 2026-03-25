@@ -130,7 +130,7 @@ class ReceiptPdfService {
                               style: const pw.TextStyle(fontSize: 9),
                             ),
                             pw.Text(
-                              '@ \u20B1${item.unitPrice.toStringAsFixed(2)}',
+                              '@ P${item.unitPrice.toStringAsFixed(2)}',
                               style: const pw.TextStyle(
                                 fontSize: 8,
                                 color: PdfColors.grey700,
@@ -150,7 +150,7 @@ class ReceiptPdfService {
                       pw.Expanded(
                         flex: 2,
                         child: pw.Text(
-                          '\u20B1${item.total.toStringAsFixed(2)}',
+                          'P${item.total.toStringAsFixed(2)}',
                           style: const pw.TextStyle(fontSize: 9),
                           textAlign: pw.TextAlign.right,
                         ),
@@ -166,7 +166,6 @@ class ReceiptPdfService {
 
               // Totals
               _buildRow('Subtotal', order.subtotal),
-              _buildRow('Tax (12%)', order.tax),
               pw.SizedBox(height: 4),
               pw.Divider(thickness: 1),
               pw.SizedBox(height: 4),
@@ -220,7 +219,7 @@ class ReceiptPdfService {
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
           pw.Text(label, style: style),
-          pw.Text('\u20B1${amount.toStringAsFixed(2)}', style: style),
+          pw.Text('P${amount.toStringAsFixed(2)}', style: style),
         ],
       ),
     );

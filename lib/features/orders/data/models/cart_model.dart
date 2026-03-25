@@ -54,7 +54,7 @@ class CartModel with _$CartModel {
 
   const factory CartModel({
     @Default([]) List<CartItemModel> items,
-    @Default(0.12) double taxRate, // 12% VAT
+    @Default(0) double taxRate,
   }) = _CartModel;
 
   factory CartModel.fromJson(Map<String, dynamic> json) =>

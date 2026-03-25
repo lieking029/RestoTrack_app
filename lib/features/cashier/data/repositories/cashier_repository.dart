@@ -9,6 +9,9 @@ abstract class CashierRepository {
     required String orderId,
     required double amountPaid,
     required String paymentMethod,
+    String? discountType,
+    String? customerName,
+    String? idNumber,
   });
 
   Future<CashierStats> getTodayStats();

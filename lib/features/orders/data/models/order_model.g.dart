@@ -32,6 +32,14 @@ _$OrderModelImpl _$$OrderModelImplFromJson(Map<String, dynamic> json) =>
       processor: json['processor'] == null
           ? null
           : UserSummary.fromJson(json['processor'] as Map<String, dynamic>),
+      discountType: json['discountType'] as String?,
+      customerName: json['customerName'] as String?,
+      idNumber: json['idNumber'] as String?,
+      discountAmount: json['discountAmount'] == null
+          ? 0
+          : _toDouble(json['discountAmount']),
+      discountTotal:
+          json['discountTotal'] == null ? 0 : _toDouble(json['discountTotal']),
     );
 
 Map<String, dynamic> _$$OrderModelImplToJson(_$OrderModelImpl instance) =>
@@ -48,6 +56,11 @@ Map<String, dynamic> _$$OrderModelImplToJson(_$OrderModelImpl instance) =>
       'items': instance.items,
       'creator': instance.creator,
       'processor': instance.processor,
+      'discountType': instance.discountType,
+      'customerName': instance.customerName,
+      'idNumber': instance.idNumber,
+      'discountAmount': instance.discountAmount,
+      'discountTotal': instance.discountTotal,
     };
 
 const _$OrderStatusEnumMap = {

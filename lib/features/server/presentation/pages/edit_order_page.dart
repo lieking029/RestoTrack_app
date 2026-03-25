@@ -6,19 +6,21 @@ import 'package:restotrack_app/features/menu/data/models/menu_model.dart';
 import 'package:restotrack_app/features/menu/presentation/bloc/menu_bloc.dart';
 import 'package:restotrack_app/features/menu/presentation/bloc/menu_event.dart';
 import 'package:restotrack_app/features/menu/presentation/bloc/menu_state.dart';
+import 'package:restotrack_app/features/orders/data/models/order_model.dart';
 import 'package:restotrack_app/features/orders/presentation/bloc/cart_bloc.dart';
 import 'package:restotrack_app/features/orders/presentation/bloc/cart_event.dart';
 import 'package:restotrack_app/features/orders/presentation/bloc/cart_state.dart';
-import 'package:restotrack_app/features/server/presentation/pages/order_summary_page.dart';
 
-class CreateOrderPage extends StatefulWidget {
-  const CreateOrderPage({super.key});
+class EditOrderPage extends StatefulWidget {
+  const EditOrderPage({required this.order, super.key});
+
+  final OrderModel order;
 
   @override
-  State<CreateOrderPage> createState() => _CreateOrderPageState();
+  State<EditOrderPage> createState() => _EditOrderPageState();
 }
 
-class _CreateOrderPageState extends State<CreateOrderPage> {
+class _EditOrderPageState extends State<EditOrderPage> {
   final _searchController = TextEditingController();
 
   @override
@@ -26,6 +28,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     super.initState();
     context.read<MenuBloc>().add(const MenuLoadItems());
     context.read<MenuBloc>().add(const MenuLoadCategories());
+    context.read<CartBloc>().add(CartLoadFromOrder(widget.order));
   }
 
   @override
@@ -34,60 +37,127 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     super.dispose();
   }
 
-  void _navigateToSummary() {
-    final cartBloc = context.read<CartBloc>();
+  void _submitEdit() {
+    context.read<CartBloc>().add(CartEditOrder(widget.order.id));
+  }
 
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
-          value: cartBloc,
-          child: const OrderSummaryPage(),
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<CartBloc, CartState>(
+      listener: (context, state) {
+        if (state.isSubmitted && state.submittedOrder != null) {
+          _showSuccessDialog(state.submittedOrder!);
+        }
+        if (state.hasError && state.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage!),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: AppColors.primaryGreen,
+          foregroundColor: AppColors.white,
+          title: Text('Edit Order #${widget.order.orderNumber}'),
+          centerTitle: true,
+          actions: [
+            BlocBuilder<CartBloc, CartState>(
+              builder: (context, state) {
+                if (state.isEmpty) return const SizedBox.shrink();
+                return TextButton(
+                  onPressed: () {
+                    context.read<CartBloc>().add(const CartClear());
+                  },
+                  child: const Text(
+                    'Clear',
+                    style: TextStyle(color: AppColors.white),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        body: Row(
+          children: [
+            Expanded(
+              flex: 65,
+              child: Column(
+                children: [
+                  _buildSearchBar(),
+                  _buildCategoryChips(),
+                  Expanded(child: _buildMenuGrid()),
+                ],
+              ),
+            ),
+            Expanded(
+              flex: 35,
+              child: _buildCartSidebar(),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.primaryGreen,
-        foregroundColor: AppColors.white,
-        title: const Text('New Order'),
-        centerTitle: true,
-        actions: [
-          BlocBuilder<CartBloc, CartState>(
-            builder: (context, state) {
-              if (state.isEmpty) return const SizedBox.shrink();
-              return TextButton(
-                onPressed: () {
-                  context.read<CartBloc>().add(const CartClear());
-                },
-                child: const Text(
-                  'Clear',
-                  style: TextStyle(color: AppColors.white),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: Row(
-        children: [
-          Expanded(
-            flex: 65,
-            child: Column(
-              children: [
-                _buildSearchBar(),
-                _buildCategoryChips(),
-                Expanded(child: _buildMenuGrid()),
-              ],
+  void _showSuccessDialog(OrderModel order) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.check_circle_rounded,
+                color: Colors.green,
+                size: 48,
+              ),
             ),
-          ),
-          Expanded(
-            flex: 35,
-            child: _buildCartSidebar(),
+            const SizedBox(height: 16),
+            const Text(
+              'Order Updated!',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Order #${order.orderNumber} has been updated.',
+              style: const TextStyle(color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryGreen,
+                foregroundColor: AppColors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Done'),
+            ),
           ),
         ],
       ),
@@ -108,12 +178,12 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
           prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
           suffixIcon: _searchController.text.isNotEmpty
               ? IconButton(
-            icon: const Icon(Icons.clear),
-            onPressed: () {
-              _searchController.clear();
-              context.read<MenuBloc>().add(const MenuClearSearch());
-            },
-          )
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    _searchController.clear();
+                    context.read<MenuBloc>().add(const MenuClearSearch());
+                  },
+                )
               : null,
           filled: true,
           fillColor: AppColors.background,
@@ -242,11 +312,11 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    const Icon(Icons.shopping_cart_rounded,
+                    const Icon(Icons.edit_rounded,
                         color: AppColors.primaryGreen, size: 20),
                     const SizedBox(width: 8),
                     const Text(
-                      'Cart',
+                      'Edit Items',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -270,7 +340,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                 const Expanded(
                   child: Center(
                     child: Text(
-                      'Add items to get started',
+                      'Add items to the order',
                       style: TextStyle(color: AppColors.textSecondary),
                     ),
                   ),
@@ -374,7 +444,9 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _navigateToSummary,
+                          onPressed: state.isSubmitting || state.isEmpty
+                              ? null
+                              : _submitEdit,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primaryGreen,
                             foregroundColor: AppColors.white,
@@ -383,17 +455,26 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'Review Order',
-                                style: TextStyle(fontWeight: FontWeight.w600),
-                              ),
-                              SizedBox(width: 4),
-                              Icon(Icons.arrow_forward_rounded, size: 18),
-                            ],
-                          ),
+                          child: state.isSubmitting
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: AppColors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.save_rounded, size: 18),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Save Changes',
+                                      style: TextStyle(fontWeight: FontWeight.w600),
+                                    ),
+                                  ],
+                                ),
                         ),
                       ),
                     ],
@@ -406,7 +487,6 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
       },
     );
   }
-
 }
 
 class _CategoryChip extends StatelessWidget {
@@ -481,15 +561,14 @@ class _MenuItemCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Image with sold out badge
                 Expanded(
                   child: Stack(
                     children: [
                       Container(
                         width: double.infinity,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: AppColors.background,
-                          borderRadius: const BorderRadius.vertical(
+                          borderRadius: BorderRadius.vertical(
                             top: Radius.circular(14),
                           ),
                         ),
@@ -515,13 +594,24 @@ class _MenuItemCard extends StatelessWidget {
                                       'ngrok-skip-browser-warning': 'true',
                                     },
                                     errorBuilder: (_, __, ___) =>
-                                        const _PlaceholderIcon(),
+                                        Center(
+                                          child: Icon(
+                                            Icons.restaurant_rounded,
+                                            size: 40,
+                                            color: Colors.grey[400],
+                                          ),
+                                        ),
                                   ),
                                 ),
                               )
-                            : const _PlaceholderIcon(),
+                            : Center(
+                                child: Icon(
+                                  Icons.restaurant_rounded,
+                                  size: 40,
+                                  color: Colors.grey[400],
+                                ),
+                              ),
                       ),
-                      // Sold Out badge
                       if (!isAvailable)
                         Positioned(
                           top: 8,
@@ -548,7 +638,6 @@ class _MenuItemCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Details
                 Padding(
                   padding: const EdgeInsets.all(12),
                   child: Column(
@@ -570,7 +659,7 @@ class _MenuItemCard extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              '₱${menu.price.toStringAsFixed(2)}',
+                              '\u20B1${menu.price.toStringAsFixed(2)}',
                               style: TextStyle(
                                 color: isAvailable
                                     ? AppColors.primaryGreen
@@ -596,12 +685,25 @@ class _MenuItemCard extends StatelessWidget {
                               },
                             )
                           else
-                            _AddButton(
+                            InkWell(
                               onTap: () {
                                 context
                                     .read<CartBloc>()
                                     .add(CartAddItem(menu));
                               },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryGreen,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.add_rounded,
+                                  color: AppColors.white,
+                                  size: 20,
+                                ),
+                              ),
                             ),
                         ],
                       ),
@@ -613,47 +715,6 @@ class _MenuItemCard extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _PlaceholderIcon extends StatelessWidget {
-  const _PlaceholderIcon();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Icon(
-        Icons.restaurant_rounded,
-        size: 40,
-        color: Colors.grey[400],
-      ),
-    );
-  }
-}
-
-class _AddButton extends StatelessWidget {
-  const _AddButton({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: AppColors.primaryGreen,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Icon(
-          Icons.add_rounded,
-          color: AppColors.white,
-          size: 20,
-        ),
-      ),
     );
   }
 }
@@ -673,7 +734,7 @@ class _QuantityControls extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.primaryGreen.withOpacity(0.1),
+        color: AppColors.primaryGreen.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(

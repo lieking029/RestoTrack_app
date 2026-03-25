@@ -354,7 +354,7 @@ class __$$CartModelImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$CartModelImpl extends _CartModel {
   const _$CartModelImpl(
-      {final List<CartItemModel> items = const [], this.taxRate = 0.12})
+      {final List<CartItemModel> items = const [], this.taxRate = 0})
       : _items = items,
         super._();
 

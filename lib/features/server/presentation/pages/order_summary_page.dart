@@ -188,11 +188,6 @@ class OrderSummaryPage extends StatelessWidget {
             label: 'Subtotal',
             value: '₱${state.subtotal.toStringAsFixed(2)}',
           ),
-          const SizedBox(height: 8),
-          _SummaryRow(
-            label: 'Tax (12%)',
-            value: '₱${state.tax.toStringAsFixed(2)}',
-          ),
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
             child: Divider(color: AppColors.border),

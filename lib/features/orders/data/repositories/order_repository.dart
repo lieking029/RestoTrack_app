@@ -11,4 +11,6 @@ abstract class OrderRepository {
   Future<OrderModel> cancelOrder(String id, {String? reason});
 
   Future<OrderModel> serveOrder(String id);
+
+  Future<OrderModel> editOrder(String id, CartModel cart);
 }

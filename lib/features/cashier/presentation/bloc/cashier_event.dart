@@ -20,14 +20,20 @@ class CashierProcessPayment extends CashierEvent {
     required this.orderId,
     required this.amountPaid,
     this.paymentMethod = 'cash',
+    this.discountType,
+    this.customerName,
+    this.idNumber,
   });
 
   final String orderId;
   final double amountPaid;
   final String paymentMethod;
+  final String? discountType;
+  final String? customerName;
+  final String? idNumber;
 
   @override
-  List<Object?> get props => [orderId, amountPaid, paymentMethod];
+  List<Object?> get props => [orderId, amountPaid, paymentMethod, discountType, customerName, idNumber];
 }
 
 class CashierLoadStats extends CashierEvent {

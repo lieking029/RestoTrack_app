@@ -98,6 +98,9 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
         orderId: event.orderId,
         amountPaid: event.amountPaid,
         paymentMethod: event.paymentMethod,
+        discountType: event.discountType,
+        customerName: event.customerName,
+        idNumber: event.idNumber,
       );
 
       // Refresh orders and stats from backend

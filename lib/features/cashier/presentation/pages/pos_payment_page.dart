@@ -22,12 +22,18 @@ class PosPaymentPage extends StatefulWidget {
 class _PosPaymentPageState extends State<PosPaymentPage> {
   final _cashController = TextEditingController();
   final _cashFocusNode = FocusNode();
+  final _customerNameController = TextEditingController();
+  final _idNumberController = TextEditingController();
   int _paymentMethodIndex = 0; // 0 = Cash, 1 = Online Pay
+  bool _discountEnabled = false;
+  String _discountType = 'PWD'; // 'PWD' or 'SENIOR'
 
   @override
   void dispose() {
     _cashController.dispose();
     _cashFocusNode.dispose();
+    _customerNameController.dispose();
+    _idNumberController.dispose();
     super.dispose();
   }
 
@@ -36,9 +42,31 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
     return double.tryParse(text) ?? 0;
   }
 
-  double get _change => _cashReceived - widget.order.total;
+  double get _discountedTotal {
+    if (!_discountEnabled) return widget.order.total;
+    // 20% discount on subtotal
+    return widget.order.subtotal * 0.80;
+  }
 
-  bool get _canProcess => _cashReceived >= widget.order.total;
+  double get _discountAmount {
+    if (!_discountEnabled) return 0;
+    return widget.order.total - _discountedTotal;
+  }
+
+  double get _amountDue => _discountEnabled ? _discountedTotal : widget.order.total;
+
+  double get _change => _cashReceived - _amountDue;
+
+  bool get _cashSufficient => _cashReceived >= _amountDue;
+
+  bool get _canProcess {
+    if (!_cashSufficient) return false;
+    if (_discountEnabled) {
+      if (_customerNameController.text.trim().isEmpty) return false;
+      if (_idNumberController.text.trim().isEmpty) return false;
+    }
+    return true;
+  }
 
   void _calculateChange() => setState(() {});
 
@@ -54,8 +82,11 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
     context.read<CashierBloc>().add(
           CashierProcessPayment(
             orderId: widget.order.id,
-            amountPaid: _cashReceived,
+            amountPaid: _amountDue,
             paymentMethod: 'cash',
+            discountType: _discountEnabled ? _discountType : null,
+            customerName: _discountEnabled ? _customerNameController.text.trim() : null,
+            idNumber: _discountEnabled ? _idNumberController.text.trim() : null,
           ),
         );
   }
@@ -66,7 +97,10 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
       barrierDismissible: false,
       builder: (dialogContext) => _PaymentSuccessDialog(
         orderNumber: widget.order.orderNumber,
-        total: widget.order.total,
+        total: _amountDue,
+        originalTotal: _discountEnabled ? widget.order.total : null,
+        discountAmount: _discountEnabled ? _discountAmount : null,
+        discountType: _discountEnabled ? _discountType : null,
         cashReceived: paymentMethod == 'cash' ? _cashReceived : null,
         change: paymentMethod == 'cash' ? _change : null,
         paymentMethod: paymentMethod,
@@ -316,18 +350,21 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
             label: 'Subtotal',
             value: '\u20B1${widget.order.subtotal.toStringAsFixed(2)}',
           ),
-          const SizedBox(height: 8),
-          _SummaryRow(
-            label: 'Tax (12%)',
-            value: '\u20B1${widget.order.tax.toStringAsFixed(2)}',
-          ),
+          if (_discountEnabled) ...[
+            const SizedBox(height: 8),
+            _SummaryRow(
+              label: '$_discountType Discount (20%)',
+              value: '-\u20B1${_discountAmount.toStringAsFixed(2)}',
+              isDiscount: true,
+            ),
+          ],
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 12),
             child: Divider(color: AppColors.border),
           ),
           _SummaryRow(
             label: 'Total',
-            value: '\u20B1${widget.order.total.toStringAsFixed(2)}',
+            value: '\u20B1${_amountDue.toStringAsFixed(2)}',
             isTotal: true,
           ),
         ],
@@ -372,13 +409,23 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '\u20B1${widget.order.total.toStringAsFixed(2)}',
+                      '\u20B1${_amountDue.toStringAsFixed(2)}',
                       style: const TextStyle(
                         color: AppColors.white,
                         fontSize: 32,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
+                    if (_discountEnabled) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        'Original: \u20B1${widget.order.total.toStringAsFixed(2)}  •  Discount: -\u20B1${_discountAmount.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -488,6 +535,10 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
               ),
               const SizedBox(height: 16),
 
+              // Discount Toggle
+              _buildDiscountSection(),
+              const SizedBox(height: 16),
+
               // Payment Content
               if (_paymentMethodIndex == 0)
                 _buildCashPaymentContent(state, isProcessing)
@@ -501,6 +552,115 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
     );
   }
 
+  Widget _buildDiscountSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'PWD / Senior Discount',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
+                ),
+              ),
+              Switch(
+                value: _discountEnabled,
+                activeColor: AppColors.primaryGreen,
+                onChanged: (value) {
+                  setState(() {
+                    _discountEnabled = value;
+                    _cashController.clear();
+                  });
+                },
+              ),
+            ],
+          ),
+          if (_discountEnabled) ...[
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: _discountType,
+              decoration: InputDecoration(
+                labelText: 'Discount Type',
+                filled: true,
+                fillColor: AppColors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: AppColors.border),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              ),
+              items: const [
+                DropdownMenuItem(value: 'PWD', child: Text('PWD')),
+                DropdownMenuItem(value: 'SENIOR', child: Text('Senior Citizen')),
+              ],
+              onChanged: (value) {
+                if (value != null) setState(() => _discountType = value);
+              },
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _customerNameController,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: 'Customer Name',
+                filled: true,
+                fillColor: AppColors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: AppColors.border),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _idNumberController,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                labelText: 'ID Number',
+                filled: true,
+                fillColor: AppColors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: AppColors.border),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.green.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '20% discount applied: -\u20B1${_discountAmount.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  color: Colors.green,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildCashPaymentContent(CashierState state, bool isProcessing) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -509,23 +669,23 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
         Row(
           children: [
             _QuickCashButton(
-              amount: _roundUpTo(widget.order.total, 100),
+              amount: _roundUpTo(_amountDue, 100),
               onTap: _onQuickCash,
             ),
             const SizedBox(width: 8),
             _QuickCashButton(
-              amount: _roundUpTo(widget.order.total, 500),
+              amount: _roundUpTo(_amountDue, 500),
               onTap: _onQuickCash,
             ),
             const SizedBox(width: 8),
             _QuickCashButton(
-              amount: _roundUpTo(widget.order.total, 1000),
+              amount: _roundUpTo(_amountDue, 1000),
               onTap: _onQuickCash,
             ),
             const SizedBox(width: 8),
             _QuickCashButton(
               label: 'Exact',
-              amount: widget.order.total,
+              amount: _amountDue,
               onTap: _onQuickCash,
             ),
           ],
@@ -588,7 +748,7 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
             width: double.infinity,
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: _canProcess
+              color: _cashSufficient
                   ? Colors.green.withValues(alpha: 0.1)
                   : Colors.red.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
@@ -597,19 +757,19 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  _canProcess
+                  _cashSufficient
                       ? Icons.check_circle_rounded
                       : Icons.error_rounded,
-                  color: _canProcess ? Colors.green : Colors.red,
+                  color: _cashSufficient ? Colors.green : Colors.red,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  _canProcess
+                  _cashSufficient
                       ? 'Change: \u20B1${_change.toStringAsFixed(2)}'
                       : 'Insufficient: \u20B1${_change.abs().toStringAsFixed(2)} more needed',
                   style: TextStyle(
-                    color: _canProcess ? Colors.green : Colors.red,
+                    color: _cashSufficient ? Colors.green : Colors.red,
                     fontWeight: FontWeight.w600,
                     fontSize: 16,
                   ),
@@ -870,11 +1030,13 @@ class _SummaryRow extends StatelessWidget {
     required this.label,
     required this.value,
     this.isTotal = false,
+    this.isDiscount = false,
   });
 
   final String label;
   final String value;
   final bool isTotal;
+  final bool isDiscount;
 
   @override
   Widget build(BuildContext context) {
@@ -884,16 +1046,24 @@ class _SummaryRow extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            color: isTotal ? AppColors.textPrimary : AppColors.textSecondary,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+            color: isDiscount
+                ? Colors.green
+                : isTotal
+                    ? AppColors.textPrimary
+                    : AppColors.textSecondary,
+            fontWeight: isTotal || isDiscount ? FontWeight.bold : FontWeight.normal,
             fontSize: isTotal ? 18 : 14,
           ),
         ),
         Text(
           value,
           style: TextStyle(
-            color: isTotal ? AppColors.primaryGreen : AppColors.textPrimary,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
+            color: isDiscount
+                ? Colors.green
+                : isTotal
+                    ? AppColors.primaryGreen
+                    : AppColors.textPrimary,
+            fontWeight: isTotal || isDiscount ? FontWeight.bold : FontWeight.w500,
             fontSize: isTotal ? 20 : 14,
           ),
         ),
@@ -945,6 +1115,9 @@ class _PaymentSuccessDialog extends StatelessWidget {
   const _PaymentSuccessDialog({
     required this.orderNumber,
     required this.total,
+    this.originalTotal,
+    this.discountAmount,
+    this.discountType,
     this.cashReceived,
     this.change,
     this.paymentMethod = 'cash',
@@ -954,6 +1127,9 @@ class _PaymentSuccessDialog extends StatelessWidget {
 
   final String orderNumber;
   final double total;
+  final double? originalTotal;
+  final double? discountAmount;
+  final String? discountType;
   final double? cashReceived;
   final double? change;
   final String paymentMethod;
@@ -1007,6 +1183,18 @@ class _PaymentSuccessDialog extends StatelessWidget {
               ),
               child: Column(
                 children: [
+                  if (discountType != null) ...[
+                    _ReceiptRow(
+                      label: 'Original Total',
+                      value: '\u20B1${originalTotal?.toStringAsFixed(2) ?? '0.00'}',
+                    ),
+                    const SizedBox(height: 8),
+                    _ReceiptRow(
+                      label: '$discountType Discount',
+                      value: '-\u20B1${discountAmount?.toStringAsFixed(2) ?? '0.00'}',
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                   _ReceiptRow(
                     label: 'Total',
                     value: '\u20B1${total.toStringAsFixed(2)}',

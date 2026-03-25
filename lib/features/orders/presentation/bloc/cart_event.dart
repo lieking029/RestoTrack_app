@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:restotrack_app/features/menu/data/models/menu_model.dart';
+import 'package:restotrack_app/features/orders/data/models/order_model.dart';
 
 abstract class CartEvent extends Equatable {
   const CartEvent();
@@ -71,4 +72,22 @@ class CartClear extends CartEvent {
 
 class CartSubmitOrder extends CartEvent {
   const CartSubmitOrder();
+}
+
+class CartLoadFromOrder extends CartEvent {
+  const CartLoadFromOrder(this.order);
+
+  final OrderModel order;
+
+  @override
+  List<Object?> get props => [order];
+}
+
+class CartEditOrder extends CartEvent {
+  const CartEditOrder(this.orderId);
+
+  final String orderId;
+
+  @override
+  List<Object?> get props => [orderId];
 }
