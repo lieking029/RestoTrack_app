@@ -8,9 +8,18 @@ import 'package:restotrack_app/features/orders/data/models/order_model.dart';
 class ReceiptPdfService {
   static Future<Uint8List> generateReceipt({
     required OrderModel order,
-    required double cashReceived,
-    required double change,
+    double? cashReceived,
+    double? change,
+    bool isPaid = true,
+    double? discountAmount,
+    String? discountType,
+    String? customerName,
+    String? idNumber,
   }) async {
+    final hasDiscount = discountAmount != null && discountAmount > 0;
+    final discountedTotal = hasDiscount
+        ? (order.total - discountAmount)
+        : order.total;
     final pdf = pw.Document();
     final dateFormat = DateFormat('MMM dd, yyyy hh:mm a');
     final dateStr = order.createdAt != null
@@ -28,6 +37,27 @@ class ReceiptPdfService {
           return pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.center,
             children: [
+              // NOT YET PAID banner
+              if (!isPaid) ...[
+                pw.Container(
+                  width: double.infinity,
+                  padding: const pw.EdgeInsets.symmetric(vertical: 6),
+                  decoration: const pw.BoxDecoration(
+                    color: PdfColors.grey800,
+                  ),
+                  child: pw.Text(
+                    '*** NOT YET PAID ***',
+                    style: pw.TextStyle(
+                      fontSize: 14,
+                      fontWeight: pw.FontWeight.bold,
+                      color: PdfColors.white,
+                    ),
+                    textAlign: pw.TextAlign.center,
+                  ),
+                ),
+                pw.SizedBox(height: 8),
+              ],
+
               // Header
               pw.Text(
                 'RestoTrack',
@@ -38,7 +68,7 @@ class ReceiptPdfService {
               ),
               pw.SizedBox(height: 2),
               pw.Text(
-                'Official Receipt',
+                isPaid ? 'Official Receipt' : 'Order Summary',
                 style: const pw.TextStyle(fontSize: 10),
               ),
               pw.SizedBox(height: 8),
@@ -166,13 +196,69 @@ class ReceiptPdfService {
 
               // Totals
               _buildRow('Subtotal', order.subtotal),
+              if (hasDiscount) ...[
+                _buildRow(
+                  '${discountType ?? "Discount"} Discount',
+                  -discountAmount,
+                ),
+                if (customerName != null && customerName.isNotEmpty)
+                  pw.Align(
+                    alignment: pw.Alignment.centerLeft,
+                    child: pw.Text(
+                      'Name: $customerName',
+                      style: const pw.TextStyle(
+                        fontSize: 8,
+                        color: PdfColors.grey700,
+                      ),
+                    ),
+                  ),
+                if (idNumber != null && idNumber.isNotEmpty)
+                  pw.Align(
+                    alignment: pw.Alignment.centerLeft,
+                    child: pw.Text(
+                      'ID: $idNumber',
+                      style: const pw.TextStyle(
+                        fontSize: 8,
+                        color: PdfColors.grey700,
+                      ),
+                    ),
+                  ),
+              ],
               pw.SizedBox(height: 4),
               pw.Divider(thickness: 1),
               pw.SizedBox(height: 4),
-              _buildRow('TOTAL', order.total, bold: true, fontSize: 12),
-              pw.SizedBox(height: 8),
-              _buildRow('Cash', cashReceived),
-              _buildRow('Change', change),
+              _buildRow('TOTAL', discountedTotal, bold: true, fontSize: 12),
+
+              if (isPaid && cashReceived != null && change != null) ...[
+                pw.SizedBox(height: 8),
+                _buildRow('Cash', cashReceived),
+                _buildRow('Change', change),
+              ],
+
+              if (!isPaid) ...[
+                pw.SizedBox(height: 12),
+                pw.Container(
+                  width: double.infinity,
+                  padding: const pw.EdgeInsets.symmetric(vertical: 4),
+                  child: pw.Text(
+                    '--- FOR REVIEW ONLY ---',
+                    style: pw.TextStyle(
+                      fontSize: 10,
+                      fontWeight: pw.FontWeight.bold,
+                      color: PdfColors.grey600,
+                    ),
+                    textAlign: pw.TextAlign.center,
+                  ),
+                ),
+                pw.Text(
+                  'Please proceed to cashier for payment.',
+                  style: const pw.TextStyle(
+                    fontSize: 9,
+                    color: PdfColors.grey600,
+                  ),
+                  textAlign: pw.TextAlign.center,
+                ),
+              ],
 
               pw.SizedBox(height: 16),
               pw.Divider(thickness: 0.5),
@@ -180,7 +266,9 @@ class ReceiptPdfService {
 
               // Footer
               pw.Text(
-                'Thank you for dining with us!',
+                isPaid
+                    ? 'Thank you for dining with us!'
+                    : 'Thank you!',
                 style: pw.TextStyle(
                   fontSize: 10,
                   fontWeight: pw.FontWeight.bold,

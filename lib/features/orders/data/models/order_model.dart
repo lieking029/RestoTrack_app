@@ -59,8 +59,6 @@ class OrderModel with _$OrderModel {
     String? processedBy,
     @Default(OrderStatus.pending) OrderStatus status,
     @JsonKey(fromJson: _toDouble) @Default(0) double subtotal,
-    @JsonKey(fromJson: _toDouble) @Default(0) double tax,
-    @JsonKey(fromJson: _toDouble) @Default(0) double total,
     DateTime? createdAt,
     DateTime? updatedAt,
     @Default([]) List<OrderItemModel> items,
@@ -76,6 +74,8 @@ class OrderModel with _$OrderModel {
 
   factory OrderModel.fromJson(Map<String, dynamic> json) =>
       _$OrderModelFromJson(normalizeJsonKeys(json));
+
+  double get total => subtotal;
 
   int get itemCount => items.fold(0, (sum, item) => sum + item.quantity);
 

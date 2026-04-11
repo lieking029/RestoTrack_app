@@ -26,10 +26,6 @@ mixin _$OrderModel {
   OrderStatus get status => throw _privateConstructorUsedError;
   @JsonKey(fromJson: _toDouble)
   double get subtotal => throw _privateConstructorUsedError;
-  @JsonKey(fromJson: _toDouble)
-  double get tax => throw _privateConstructorUsedError;
-  @JsonKey(fromJson: _toDouble)
-  double get total => throw _privateConstructorUsedError;
   DateTime? get createdAt => throw _privateConstructorUsedError;
   DateTime? get updatedAt => throw _privateConstructorUsedError;
   List<OrderItemModel> get items => throw _privateConstructorUsedError;
@@ -65,8 +61,6 @@ abstract class $OrderModelCopyWith<$Res> {
       String? processedBy,
       OrderStatus status,
       @JsonKey(fromJson: _toDouble) double subtotal,
-      @JsonKey(fromJson: _toDouble) double tax,
-      @JsonKey(fromJson: _toDouble) double total,
       DateTime? createdAt,
       DateTime? updatedAt,
       List<OrderItemModel> items,
@@ -102,8 +96,6 @@ class _$OrderModelCopyWithImpl<$Res, $Val extends OrderModel>
     Object? processedBy = freezed,
     Object? status = null,
     Object? subtotal = null,
-    Object? tax = null,
-    Object? total = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? items = null,
@@ -135,14 +127,6 @@ class _$OrderModelCopyWithImpl<$Res, $Val extends OrderModel>
       subtotal: null == subtotal
           ? _value.subtotal
           : subtotal // ignore: cast_nullable_to_non_nullable
-              as double,
-      tax: null == tax
-          ? _value.tax
-          : tax // ignore: cast_nullable_to_non_nullable
-              as double,
-      total: null == total
-          ? _value.total
-          : total // ignore: cast_nullable_to_non_nullable
               as double,
       createdAt: freezed == createdAt
           ? _value.createdAt
@@ -230,8 +214,6 @@ abstract class _$$OrderModelImplCopyWith<$Res>
       String? processedBy,
       OrderStatus status,
       @JsonKey(fromJson: _toDouble) double subtotal,
-      @JsonKey(fromJson: _toDouble) double tax,
-      @JsonKey(fromJson: _toDouble) double total,
       DateTime? createdAt,
       DateTime? updatedAt,
       List<OrderItemModel> items,
@@ -267,8 +249,6 @@ class __$$OrderModelImplCopyWithImpl<$Res>
     Object? processedBy = freezed,
     Object? status = null,
     Object? subtotal = null,
-    Object? tax = null,
-    Object? total = null,
     Object? createdAt = freezed,
     Object? updatedAt = freezed,
     Object? items = null,
@@ -300,14 +280,6 @@ class __$$OrderModelImplCopyWithImpl<$Res>
       subtotal: null == subtotal
           ? _value.subtotal
           : subtotal // ignore: cast_nullable_to_non_nullable
-              as double,
-      tax: null == tax
-          ? _value.tax
-          : tax // ignore: cast_nullable_to_non_nullable
-              as double,
-      total: null == total
-          ? _value.total
-          : total // ignore: cast_nullable_to_non_nullable
               as double,
       createdAt: freezed == createdAt
           ? _value.createdAt
@@ -362,8 +334,6 @@ class _$OrderModelImpl extends _OrderModel {
       this.processedBy,
       this.status = OrderStatus.pending,
       @JsonKey(fromJson: _toDouble) this.subtotal = 0,
-      @JsonKey(fromJson: _toDouble) this.tax = 0,
-      @JsonKey(fromJson: _toDouble) this.total = 0,
       this.createdAt,
       this.updatedAt,
       final List<OrderItemModel> items = const [],
@@ -392,12 +362,6 @@ class _$OrderModelImpl extends _OrderModel {
   @override
   @JsonKey(fromJson: _toDouble)
   final double subtotal;
-  @override
-  @JsonKey(fromJson: _toDouble)
-  final double tax;
-  @override
-  @JsonKey(fromJson: _toDouble)
-  final double total;
   @override
   final DateTime? createdAt;
   @override
@@ -430,7 +394,7 @@ class _$OrderModelImpl extends _OrderModel {
 
   @override
   String toString() {
-    return 'OrderModel(id: $id, createdBy: $createdBy, processedBy: $processedBy, status: $status, subtotal: $subtotal, tax: $tax, total: $total, createdAt: $createdAt, updatedAt: $updatedAt, items: $items, creator: $creator, processor: $processor, discountType: $discountType, customerName: $customerName, idNumber: $idNumber, discountAmount: $discountAmount, discountTotal: $discountTotal)';
+    return 'OrderModel(id: $id, createdBy: $createdBy, processedBy: $processedBy, status: $status, subtotal: $subtotal, createdAt: $createdAt, updatedAt: $updatedAt, items: $items, creator: $creator, processor: $processor, discountType: $discountType, customerName: $customerName, idNumber: $idNumber, discountAmount: $discountAmount, discountTotal: $discountTotal)';
   }
 
   @override
@@ -446,8 +410,6 @@ class _$OrderModelImpl extends _OrderModel {
             (identical(other.status, status) || other.status == status) &&
             (identical(other.subtotal, subtotal) ||
                 other.subtotal == subtotal) &&
-            (identical(other.tax, tax) || other.tax == tax) &&
-            (identical(other.total, total) || other.total == total) &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.updatedAt, updatedAt) ||
@@ -477,8 +439,6 @@ class _$OrderModelImpl extends _OrderModel {
       processedBy,
       status,
       subtotal,
-      tax,
-      total,
       createdAt,
       updatedAt,
       const DeepCollectionEquality().hash(_items),
@@ -513,8 +473,6 @@ abstract class _OrderModel extends OrderModel {
           final String? processedBy,
           final OrderStatus status,
           @JsonKey(fromJson: _toDouble) final double subtotal,
-          @JsonKey(fromJson: _toDouble) final double tax,
-          @JsonKey(fromJson: _toDouble) final double total,
           final DateTime? createdAt,
           final DateTime? updatedAt,
           final List<OrderItemModel> items,
@@ -542,12 +500,6 @@ abstract class _OrderModel extends OrderModel {
   @override
   @JsonKey(fromJson: _toDouble)
   double get subtotal;
-  @override
-  @JsonKey(fromJson: _toDouble)
-  double get tax;
-  @override
-  @JsonKey(fromJson: _toDouble)
-  double get total;
   @override
   DateTime? get createdAt;
   @override

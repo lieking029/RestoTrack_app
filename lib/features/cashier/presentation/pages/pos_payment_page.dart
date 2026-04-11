@@ -42,18 +42,24 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
     return double.tryParse(text) ?? 0;
   }
 
+  bool get _discountFieldsComplete =>
+      _customerNameController.text.trim().isNotEmpty &&
+      _idNumberController.text.trim().isNotEmpty;
+
+  bool get _discountApplied => _discountEnabled && _discountFieldsComplete;
+
   double get _discountedTotal {
-    if (!_discountEnabled) return widget.order.total;
+    if (!_discountApplied) return widget.order.total;
     // 20% discount on subtotal
     return widget.order.subtotal * 0.80;
   }
 
   double get _discountAmount {
-    if (!_discountEnabled) return 0;
-    return widget.order.total - _discountedTotal;
+    if (!_discountApplied) return 0;
+    return widget.order.subtotal * 0.20;
   }
 
-  double get _amountDue => _discountEnabled ? _discountedTotal : widget.order.total;
+  double get _amountDue => _discountApplied ? _discountedTotal : widget.order.total;
 
   double get _change => _cashReceived - _amountDue;
 
@@ -74,6 +80,32 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
     _cashController.text = amount.toStringAsFixed(2);
     _cashFocusNode.unfocus();
     _calculateChange();
+  }
+
+  Future<void> _printPreviewReceipt() async {
+    try {
+      final pdfBytes = await ReceiptPdfService.generateReceipt(
+        order: widget.order,
+        isPaid: false,
+        discountAmount: _discountApplied ? _discountAmount : null,
+        discountType: _discountApplied ? _discountType : null,
+        customerName: _discountApplied ? _customerNameController.text.trim() : null,
+        idNumber: _discountApplied ? _idNumberController.text.trim() : null,
+      );
+      await Printing.layoutPdf(
+        onLayout: (_) => pdfBytes,
+        name: 'Preview_${widget.order.orderNumber}',
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to generate preview receipt'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   void _processPayment() {
@@ -98,7 +130,7 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
       builder: (dialogContext) => _PaymentSuccessDialog(
         orderNumber: widget.order.orderNumber,
         total: _amountDue,
-        originalTotal: _discountEnabled ? widget.order.total : null,
+        originalTotal: _discountEnabled ? widget.order.subtotal : null,
         discountAmount: _discountEnabled ? _discountAmount : null,
         discountType: _discountEnabled ? _discountType : null,
         cashReceived: paymentMethod == 'cash' ? _cashReceived : null,
@@ -112,8 +144,12 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
           try {
             final pdfBytes = await ReceiptPdfService.generateReceipt(
               order: widget.order,
-              cashReceived: paymentMethod == 'cash' ? _cashReceived : widget.order.total,
+              cashReceived: paymentMethod == 'cash' ? _cashReceived : _amountDue,
               change: paymentMethod == 'cash' ? _change : 0,
+              discountAmount: _discountApplied ? _discountAmount : null,
+              discountType: _discountApplied ? _discountType : null,
+              customerName: _discountApplied ? _customerNameController.text.trim() : null,
+              idNumber: _discountApplied ? _idNumberController.text.trim() : null,
             );
             await Printing.layoutPdf(
               onLayout: (_) => pdfBytes,
@@ -350,7 +386,7 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
             label: 'Subtotal',
             value: '\u20B1${widget.order.subtotal.toStringAsFixed(2)}',
           ),
-          if (_discountEnabled) ...[
+          if (_discountApplied) ...[
             const SizedBox(height: 8),
             _SummaryRow(
               label: '$_discountType Discount (20%)',
@@ -416,10 +452,10 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    if (_discountEnabled) ...[
+                    if (_discountApplied) ...[
                       const SizedBox(height: 4),
                       Text(
-                        'Original: \u20B1${widget.order.total.toStringAsFixed(2)}  •  Discount: -\u20B1${_discountAmount.toStringAsFixed(2)}',
+                        'Original: \u20B1${widget.order.subtotal.toStringAsFixed(2)}  •  Discount: -\u20B1${_discountAmount.toStringAsFixed(2)}',
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 12,
@@ -539,6 +575,34 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
               _buildDiscountSection(),
               const SizedBox(height: 16),
 
+              // Print Preview Receipt (not yet paid)
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: OutlinedButton.icon(
+                  onPressed: () => _printPreviewReceipt(),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.border),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  icon: const Icon(
+                    Icons.print_rounded,
+                    size: 18,
+                    color: AppColors.textSecondary,
+                  ),
+                  label: const Text(
+                    'Print Preview Receipt',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
               // Payment Content
               if (_paymentMethodIndex == 0)
                 _buildCashPaymentContent(state, isProcessing)
@@ -611,6 +675,9 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
             TextField(
               controller: _customerNameController,
               onChanged: (_) => setState(() {}),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')),
+              ],
               decoration: InputDecoration(
                 labelText: 'Customer Name',
                 filled: true,
@@ -626,6 +693,9 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
             TextField(
               controller: _idNumberController,
               onChanged: (_) => setState(() {}),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+              ],
               decoration: InputDecoration(
                 labelText: 'ID Number',
                 filled: true,
@@ -973,12 +1043,15 @@ class _PosPaymentPageState extends State<PosPaymentPage> {
           width: double.infinity,
           height: 56,
           child: ElevatedButton(
-            onPressed: isCreating
+            onPressed: isCreating || (_discountEnabled && (_customerNameController.text.trim().isEmpty || _idNumberController.text.trim().isEmpty))
                 ? null
                 : () {
                     context.read<CashierBloc>().add(
                           CashierCreateOnlinePayment(
                             orderId: widget.order.id,
+                            discountType: _discountEnabled ? _discountType : null,
+                            customerName: _discountEnabled ? _customerNameController.text.trim() : null,
+                            idNumber: _discountEnabled ? _idNumberController.text.trim() : null,
                           ),
                         );
                   },

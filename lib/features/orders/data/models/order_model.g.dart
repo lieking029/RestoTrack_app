@@ -14,8 +14,6 @@ _$OrderModelImpl _$$OrderModelImplFromJson(Map<String, dynamic> json) =>
       status: $enumDecodeNullable(_$OrderStatusEnumMap, json['status']) ??
           OrderStatus.pending,
       subtotal: json['subtotal'] == null ? 0 : _toDouble(json['subtotal']),
-      tax: json['tax'] == null ? 0 : _toDouble(json['tax']),
-      total: json['total'] == null ? 0 : _toDouble(json['total']),
       createdAt: json['createdAt'] == null
           ? null
           : DateTime.parse(json['createdAt'] as String),
@@ -49,8 +47,6 @@ Map<String, dynamic> _$$OrderModelImplToJson(_$OrderModelImpl instance) =>
       'processedBy': instance.processedBy,
       'status': _$OrderStatusEnumMap[instance.status]!,
       'subtotal': instance.subtotal,
-      'tax': instance.tax,
-      'total': instance.total,
       'createdAt': instance.createdAt?.toIso8601String(),
       'updatedAt': instance.updatedAt?.toIso8601String(),
       'items': instance.items,

@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs ls:*)",
+      "Bash(grep \"\\\\.dart$\")",
+      "Bash(flutter analyze:*)",
+      "Bash(dart run:*)",
+      "Bash(xargs grep:*)",
+      "Bash(flutter pub:*)",
+      "Bash(cp -v android/app/src/main/res/mipmap-hdpi/ic_launcher.png android/app/src/development/res/mipmap-hdpi/ic_launcher.png)",
+      "Bash(cp -v android/app/src/main/res/mipmap-mdpi/ic_launcher.png android/app/src/development/res/mipmap-mdpi/ic_launcher.png)",
+      "Bash(cp -v android/app/src/main/res/mipmap-xhdpi/ic_launcher.png android/app/src/development/res/mipmap-xhdpi/ic_launcher.png)",
+      "Bash(cp -v android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png android/app/src/development/res/mipmap-xxhdpi/ic_launcher.png)",
+      "Bash(cp -v android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png android/app/src/development/res/mipmap-xxxhdpi/ic_launcher.png)",
+      "Bash(cp -v android/app/src/main/res/mipmap-hdpi/ic_launcher.png android/app/src/staging/res/mipmap-hdpi/ic_launcher.png)",
+      "Bash(cp -v android/app/src/main/res/mipmap-mdpi/ic_launcher.png android/app/src/staging/res/mipmap-mdpi/ic_launcher.png)",
+      "Bash(cp -v android/app/src/main/res/mipmap-xhdpi/ic_launcher.png android/app/src/staging/res/mipmap-xhdpi/ic_launcher.png)",
+      "Bash(cp -v android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png android/app/src/staging/res/mipmap-xxhdpi/ic_launcher.png)",
+      "Bash(cp -v android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png android/app/src/staging/res/mipmap-xxxhdpi/ic_launcher.png)",
+      "Bash(ls android/app/src/main/res/drawable*/background*.png android/app/src/main/res/drawable*/splash*.png)",
+      "Bash(ls:*)"
+    ]
+  }
+}

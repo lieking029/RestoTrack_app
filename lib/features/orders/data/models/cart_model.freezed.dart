@@ -259,7 +259,6 @@ CartModel _$CartModelFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$CartModel {
   List<CartItemModel> get items => throw _privateConstructorUsedError;
-  double get taxRate => throw _privateConstructorUsedError;
 
   /// Serializes this CartModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -276,7 +275,7 @@ abstract class $CartModelCopyWith<$Res> {
   factory $CartModelCopyWith(CartModel value, $Res Function(CartModel) then) =
       _$CartModelCopyWithImpl<$Res, CartModel>;
   @useResult
-  $Res call({List<CartItemModel> items, double taxRate});
+  $Res call({List<CartItemModel> items});
 }
 
 /// @nodoc
@@ -295,17 +294,12 @@ class _$CartModelCopyWithImpl<$Res, $Val extends CartModel>
   @override
   $Res call({
     Object? items = null,
-    Object? taxRate = null,
   }) {
     return _then(_value.copyWith(
       items: null == items
           ? _value.items
           : items // ignore: cast_nullable_to_non_nullable
               as List<CartItemModel>,
-      taxRate: null == taxRate
-          ? _value.taxRate
-          : taxRate // ignore: cast_nullable_to_non_nullable
-              as double,
     ) as $Val);
   }
 }
@@ -318,7 +312,7 @@ abstract class _$$CartModelImplCopyWith<$Res>
       __$$CartModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({List<CartItemModel> items, double taxRate});
+  $Res call({List<CartItemModel> items});
 }
 
 /// @nodoc
@@ -335,17 +329,12 @@ class __$$CartModelImplCopyWithImpl<$Res>
   @override
   $Res call({
     Object? items = null,
-    Object? taxRate = null,
   }) {
     return _then(_$CartModelImpl(
       items: null == items
           ? _value._items
           : items // ignore: cast_nullable_to_non_nullable
               as List<CartItemModel>,
-      taxRate: null == taxRate
-          ? _value.taxRate
-          : taxRate // ignore: cast_nullable_to_non_nullable
-              as double,
     ));
   }
 }
@@ -353,8 +342,7 @@ class __$$CartModelImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$CartModelImpl extends _CartModel {
-  const _$CartModelImpl(
-      {final List<CartItemModel> items = const [], this.taxRate = 0})
+  const _$CartModelImpl({final List<CartItemModel> items = const []})
       : _items = items,
         super._();
 
@@ -371,12 +359,8 @@ class _$CartModelImpl extends _CartModel {
   }
 
   @override
-  @JsonKey()
-  final double taxRate;
-
-  @override
   String toString() {
-    return 'CartModel(items: $items, taxRate: $taxRate)';
+    return 'CartModel(items: $items)';
   }
 
   @override
@@ -384,14 +368,13 @@ class _$CartModelImpl extends _CartModel {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$CartModelImpl &&
-            const DeepCollectionEquality().equals(other._items, _items) &&
-            (identical(other.taxRate, taxRate) || other.taxRate == taxRate));
+            const DeepCollectionEquality().equals(other._items, _items));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, const DeepCollectionEquality().hash(_items), taxRate);
+  int get hashCode =>
+      Object.hash(runtimeType, const DeepCollectionEquality().hash(_items));
 
   /// Create a copy of CartModel
   /// with the given fields replaced by the non-null parameter values.
@@ -410,9 +393,7 @@ class _$CartModelImpl extends _CartModel {
 }
 
 abstract class _CartModel extends CartModel {
-  const factory _CartModel(
-      {final List<CartItemModel> items,
-      final double taxRate}) = _$CartModelImpl;
+  const factory _CartModel({final List<CartItemModel> items}) = _$CartModelImpl;
   const _CartModel._() : super._();
 
   factory _CartModel.fromJson(Map<String, dynamic> json) =
@@ -420,8 +401,6 @@ abstract class _CartModel extends CartModel {
 
   @override
   List<CartItemModel> get items;
-  @override
-  double get taxRate;
 
   /// Create a copy of CartModel
   /// with the given fields replaced by the non-null parameter values.

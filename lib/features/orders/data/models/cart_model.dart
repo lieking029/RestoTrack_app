@@ -54,7 +54,6 @@ class CartModel with _$CartModel {
 
   const factory CartModel({
     @Default([]) List<CartItemModel> items,
-    @Default(0) double taxRate,
   }) = _CartModel;
 
   factory CartModel.fromJson(Map<String, dynamic> json) =>
@@ -67,8 +66,7 @@ class CartModel with _$CartModel {
   int get uniqueItemCount => items.length;
 
   double get subtotal => items.fold(0, (sum, item) => sum + item.total);
-  double get tax => subtotal * taxRate;
-  double get total => subtotal + tax;
+  double get total => subtotal;
 
   /// Check if menu item is in cart
   bool containsMenu(String menuId) =>

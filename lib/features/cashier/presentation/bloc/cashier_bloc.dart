@@ -163,6 +163,9 @@ class CashierBloc extends Bloc<CashierEvent, CashierState> {
     try {
       final result = await _cashierRepository.createOnlinePayment(
         orderId: event.orderId,
+        discountType: event.discountType,
+        customerName: event.customerName,
+        idNumber: event.idNumber,
       );
       emit(
         state.copyWith(

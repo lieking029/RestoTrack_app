@@ -16,7 +16,12 @@ abstract class CashierRepository {
 
   Future<CashierStats> getTodayStats();
 
-  Future<Map<String, String>> createOnlinePayment({required String orderId});
+  Future<Map<String, String>> createOnlinePayment({
+    required String orderId,
+    String? discountType,
+    String? customerName,
+    String? idNumber,
+  });
 
   Future<bool> checkPaymentStatus({required String orderId});
 }

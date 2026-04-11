@@ -26,14 +26,16 @@ class MenuBloc extends Bloc<MenuEvent, MenuState> {
 
     try {
       final items = await _menuRepository.getMenuItems();
-      // Derive categories from loaded menu items
+      // Derive categories from loaded menu items, deduped by display name
       final categoryIds = items.map((i) => i.category).toSet().toList()..sort();
-      final categories = categoryIds
-          .map((id) => CategoryModel(
-                id: id,
-                name: MenuModel.categoryNames[id] ?? 'Other',
-              ))
-          .toList();
+      final seenNames = <String>{};
+      final categories = <CategoryModel>[];
+      for (final id in categoryIds) {
+        final name = MenuModel.categoryNames[id] ?? 'Other';
+        if (seenNames.add(name)) {
+          categories.add(CategoryModel(id: id, name: name));
+        }
+      }
       emit(state.copyWith(
         isLoading: false,
         menuItems: items,

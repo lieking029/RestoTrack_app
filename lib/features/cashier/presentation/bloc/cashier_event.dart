@@ -45,12 +45,20 @@ class CashierClearError extends CashierEvent {
 }
 
 class CashierCreateOnlinePayment extends CashierEvent {
-  const CashierCreateOnlinePayment({required this.orderId});
+  const CashierCreateOnlinePayment({
+    required this.orderId,
+    this.discountType,
+    this.customerName,
+    this.idNumber,
+  });
 
   final String orderId;
+  final String? discountType;
+  final String? customerName;
+  final String? idNumber;
 
   @override
-  List<Object?> get props => [orderId];
+  List<Object?> get props => [orderId, discountType, customerName, idNumber];
 }
 
 class CashierPollPaymentStatus extends CashierEvent {

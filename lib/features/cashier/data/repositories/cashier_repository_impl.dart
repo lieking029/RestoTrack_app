@@ -82,14 +82,23 @@ class CashierRepositoryImpl implements CashierRepository {
   @override
   Future<Map<String, String>> createOnlinePayment({
     required String orderId,
+    String? discountType,
+    String? customerName,
+    String? idNumber,
   }) async {
-    final response = await _apiClient.createOnlinePayment({
+    final data = <String, dynamic>{
       'order_id': orderId,
-    });
-    final data = response.data as Map<String, dynamic>;
+    };
+    if (discountType != null) {
+      data['discount_type'] = discountType;
+      data['customer_name'] = customerName;
+      data['id_number'] = idNumber;
+    }
+    final response = await _apiClient.createOnlinePayment(data);
+    final responseData = response.data as Map<String, dynamic>;
     return {
-      'checkout_url': data['checkout_url'] as String,
-      'checkout_session_id': data['checkout_session_id'] as String,
+      'checkout_url': responseData['checkout_url'] as String,
+      'checkout_session_id': responseData['checkout_session_id'] as String,
     };
   }
 

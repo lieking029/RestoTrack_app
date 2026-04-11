@@ -34,6 +34,5 @@ class CartState with _$CartState {
   int get itemCount => cart.itemCount;
   int get uniqueItemCount => cart.uniqueItemCount;
   double get subtotal => cart.subtotal;
-  double get tax => cart.tax;
   double get total => cart.total;
 }

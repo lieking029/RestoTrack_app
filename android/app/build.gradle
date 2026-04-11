@@ -80,17 +80,17 @@ android {
         production {
             dimension "default"
             applicationIdSuffix ""
-            manifestPlaceholders = [appName: "Restotrack App"]
+            manifestPlaceholders = [appName: "RestoTrack - Hapag sa Marikina"]
         }
         staging {
             dimension "default"
             applicationIdSuffix ".stg"
-            manifestPlaceholders = [appName: "[STG] Restotrack App"]
+            manifestPlaceholders = [appName: "[STG] RestoTrack - Hapag sa Marikina"]
         }
         development {
             dimension "default"
             applicationIdSuffix ".dev"
-            manifestPlaceholders = [appName: "[DEV] Restotrack App"]
+            manifestPlaceholders = [appName: "[DEV] RestoTrack - Hapag sa Marikina"]
         }
     }
 

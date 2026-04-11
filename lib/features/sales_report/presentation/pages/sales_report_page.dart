@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:printing/printing.dart';
 import 'package:restotrack_app/core/theme/app_theme.dart';
 import 'package:restotrack_app/features/orders/data/models/order_model.dart';
+import 'package:restotrack_app/features/sales_report/data/services/sales_report_export_service.dart';
 import 'package:restotrack_app/features/sales_report/presentation/bloc/sales_report_bloc.dart';
 import 'package:restotrack_app/features/sales_report/presentation/bloc/sales_report_event.dart';
 import 'package:restotrack_app/features/sales_report/presentation/bloc/sales_report_state.dart';
@@ -57,6 +59,34 @@ class _SalesReportPageState extends State<SalesReportPage> {
     }
   }
 
+  Future<void> _exportPdf(SalesReportState state) async {
+    if (state.orders.isEmpty || state.startDate == null || state.endDate == null) {
+      return;
+    }
+
+    try {
+      final pdfBytes = await SalesReportExportService.generatePdf(
+        orders: state.orders,
+        stats: state.stats,
+        startDate: state.startDate!,
+        endDate: state.endDate!,
+      );
+      await Printing.layoutPdf(
+        onLayout: (_) => pdfBytes,
+        name: 'SalesReport_${DateFormat('yyyyMMdd').format(DateTime.now())}',
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to generate PDF'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -69,6 +99,23 @@ class _SalesReportPageState extends State<SalesReportPage> {
           'Sales Report',
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
+        actions: [
+          BlocBuilder<SalesReportBloc, SalesReportState>(
+            builder: (context, state) {
+              final hasData = state.orders.isNotEmpty && !state.isLoading;
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    onPressed: hasData ? () => _exportPdf(state) : null,
+                    icon: const Icon(Icons.picture_as_pdf_rounded),
+                    tooltip: 'Export PDF',
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
       body: BlocConsumer<SalesReportBloc, SalesReportState>(
         listener: (context, state) {
